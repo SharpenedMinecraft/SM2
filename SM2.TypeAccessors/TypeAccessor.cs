@@ -1,9 +1,10 @@
-﻿using System;
+﻿using AutoSerialize;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace SM2.Core.BaseTypes.Abstractions
+namespace SM2.TypeAccessors
 {
     public abstract class TypeAccessor<T> : ITypeAccessor<T>
     {

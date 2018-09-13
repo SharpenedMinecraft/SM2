@@ -1,30 +1,36 @@
-﻿using SM2.Core.BaseTypes;
+﻿using AutoSerialize;
+using SM2.Core.BaseTypes;
 using SM2.Core.Server;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SM2.Packets
 {
-    class PlayerPositionAndLookClient : Packet
+    public class PlayerPositionAndLookClient : Packet
     {
-        public override ConnectionState RequiredState => ConnectionState.Play;
-        public override ConnectionSide WritingSide => ConnectionSide.Server;
-        public override VarInt Id { get; } = 0x32;
+        public override ConnectionState RequiredState { get; } = ConnectionState.Play;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
+        public override VarInt Id { get; } = 0x11;
 
-        [PacketField(0)]
+        [AutoSerialize(0)]
         public double X;
-        [PacketField(1)]
-        public double Y;
-        [PacketField(2)]
+        [AutoSerialize(1)]
+        public double FeetY;
+        [AutoSerialize(2)]
         public double Z;
-        [PacketField(3)]
+        [AutoSerialize(3)]
         public float Yaw;
-        [PacketField(4)]
+        [AutoSerialize(4)]
         public float Pitch;
-        [PacketField(3)]
-        public byte Flags; //TODO: <Dinnerbone> It's a bitfield, X/Y/Z/Y_ROT/X_ROT. If X is set, the x value is relative and not absolute.
-        [PacketField(4)]
-        public VarInt TeleportID;
+        [AutoSerialize(5)]
+        public bool OnGround;
+
+        public override async Task PostRead()
+        {
+            // TODO: Process PlayerPositionAndLookClient
+            await base.PostRead();
+        }
     }
 }

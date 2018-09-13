@@ -1,4 +1,5 @@
-﻿using SM2.Core.BaseTypes;
+﻿using AutoSerialize;
+using SM2.Core.BaseTypes;
 using SM2.Core.Server;
 using System;
 using System.Collections.Generic;
@@ -13,13 +14,13 @@ namespace SM2.Packets
         public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
         public override VarInt Id { get; } = 0x00;
         
-        [PacketField(0)]
+        [AutoSerialize(0)]
         public VarInt ProtocolVersion;
-        [PacketField(1)]
+        [AutoSerialize(1)]
         public string ServerAddress;
-        [PacketField(2)]
+        [AutoSerialize(2)]
         public ushort ServerPort;
-        [PacketField(3)]
+        [AutoSerialize(3)]
         public ConnectionState NextState;
 
         public override async Task PostRead()
@@ -27,6 +28,8 @@ namespace SM2.Packets
             if (ServerWrapper.ProtocolVersion != ProtocolVersion)
                 throw new ArgumentException();
             _ctx.Client.SetState(NextState);
+
+            await base.PostRead();
         }
     }
 }

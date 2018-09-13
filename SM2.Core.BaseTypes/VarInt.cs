@@ -1,9 +1,11 @@
-﻿using System;
+﻿using AutoSerialize;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace SM2.Core.BaseTypes
 {
+    [AutoConvertTo(typeof(int))]
     public class VarInt
     {
         private int _val;

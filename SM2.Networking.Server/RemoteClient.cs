@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 using System.Reflection;
 using SM2.Core.BaseTypes.Abstractions;
+using AutoSerialize;
 
 namespace SM2.Core.Server
 {
@@ -76,12 +77,22 @@ namespace SM2.Core.Server
                 {
                     // now we are alone again
                     int id = varIntAccessor.Read(stream);
-                    var info = serializer.BuildTypes.First(x => x.Id == id && x.RequiredState == _state);
-                    var p = (Packet)Activator.CreateInstance(info.PacketType);
-                    p.SetContext(_ctx);
-                    await p.PreRead()
-                        .ContinueWith((res) => info.ReadAction(stream, p))
-                        .ContinueWith(async (res) => await p.PostRead());
+                    try
+                    {
+                        var info = serializer.BuildTypes.First(x => x.Id == id && x.RequiredState == _state);
+                        var p = (Packet)Activator.CreateInstance(info.PacketType);
+                        p.SetContext(_ctx);
+                        await p.PreRead();
+                        info.ReadAction(stream, p);
+                        await p.PostRead();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error while Trying to Read Packet: 0x{id.ToString("X")}, CurrentState: {_state}");
+                        Console.WriteLine();
+                        Console.WriteLine(ex);
+                        Console.WriteLine();
+                    }
                 }
             }
             catch (Exception ex)
@@ -95,26 +106,39 @@ namespace SM2.Core.Server
             }
         }
 
-        public async Task Write<T>(T packet) where T : IPacket, new()
+        public void Write<T>(T packet) where T : Packet, new()
         {
-            var serializer = _ctx.Provider.GetService<IPacketSerializer>();
-            await packet.PreWrite()
-                .ContinueWith(async (res) =>
+            Task.Run(async () =>
+            {
+                try
                 {
-                    
+                    var serializer = _ctx.Provider.GetService<IPacketSerializer>();
+                    packet.SetContext(_ctx);
+                    await packet.PreWrite();
                     using (var stream = new MemoryStream())
                     {
+                        var varIntAccessor = _ctx.Provider.GetService<ITypeAccessor<VarInt>>();
                         var info = serializer.BuildTypes.First(x => x.PacketType == typeof(T));
+                        varIntAccessor.Write(stream, info.Id);
                         info.WriteAction(stream, packet);
                         using (var lengthStream = new MemoryStream())
                         {
-                            _ctx.Provider.GetService<ITypeAccessor<VarInt>>().Write(lengthStream, (int)stream.Position);
+                            varIntAccessor.Write(lengthStream, (int)stream.Position);
                             stream.Position = 0;
                             await stream.CopyToAsync(lengthStream);
                             try
                             {
                                 await _streamSemaphore.WaitAsync();
                                 lengthStream.Position = 0;
+                                /*string s = "";
+                                while (true)
+                                {
+                                    var v = lengthStream.ReadByte();
+                                    if (v == -1)
+                                        break;
+                                    s += (byte)v;
+                                    s += "\n";
+                                }*/
                                 await lengthStream.CopyToAsync(_stream);
                             }
                             finally
@@ -123,9 +147,16 @@ namespace SM2.Core.Server
                             }
                         }
                     }
-
-                })
-                .ContinueWith(async (res) => await packet.PostWrite());
+                    await packet.PostWrite();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error while Trying to Write Packet: 0x{((int)packet.Id).ToString("X")}, CurrentState: {_state}");
+                    Console.WriteLine();
+                    Console.WriteLine(ex);
+                    Console.WriteLine();
+                }
+            });
         }
 
 

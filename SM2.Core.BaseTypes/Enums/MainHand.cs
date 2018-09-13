@@ -1,12 +1,13 @@
-﻿using System;
+﻿using AutoSerialize;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace SM2.Core.BaseTypes.Enums
 {
-    //TODO: implement VarInt
     [Flags]
-    public enum MainHand : int
+    [AutoSerializeAs(typeof(VarInt))]
+    public enum MainHand
     {
         Left = 0,
         Right = 1

@@ -1,12 +1,14 @@
-﻿using System;
+﻿using AutoSerialize;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace SM2.Core.BaseTypes.Enums
 {
-    //TODO: VarInt enum: https://wiki.vg/Protocol#Client_Status
+    [AutoSerializeAs(typeof(VarInt))]
     public enum ActionID
     {
-
+        Respawn, 
+        Stats
     }
 }

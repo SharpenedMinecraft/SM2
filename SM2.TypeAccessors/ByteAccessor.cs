@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SM2.Core.BaseTypes.Abstractions;
+using AutoSerialize;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,6 +33,13 @@ namespace SM2.TypeAccessors
         public void WriteArray(Stream stream, Byte[] val)
         {
             stream.Write(val, 0, val.Length);
+        }
+
+        public Byte[] ReadToEnd(Stream stream)
+        {
+            var b = new Byte[stream.Length - stream.Position];
+            stream.Read(b, 0, b.Length);
+            return b;
         }
     }
 }

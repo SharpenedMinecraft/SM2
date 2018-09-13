@@ -1,4 +1,5 @@
-﻿using SM2.Core.BaseTypes;
+﻿using AutoSerialize;
+using SM2.Core.BaseTypes;
 using SM2.Core.BaseTypes.Enums;
 using SM2.Core.Server;
 using System;
@@ -9,15 +10,15 @@ namespace SM2.Packets
 {
     class PlayerAbilities : Packet
     {
-        public override ConnectionState RequiredState => ConnectionState.Play;
-        public override ConnectionSide WritingSide => ConnectionSide.Server;
+        public override ConnectionState RequiredState { get; } = ConnectionState.Play;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Server;
         public override VarInt Id { get; } = 0x2E;
 
-        [PacketField(0)]
+        [AutoSerialize(0)]
         public PlayerFlags Flags;
-        [PacketField(1)]
+        [AutoSerialize(1)]
         public float FlyingSpeed;
-        [PacketField(2)]
+        [AutoSerialize(2)]
         public float FieldOfViewModifier;
 
     }

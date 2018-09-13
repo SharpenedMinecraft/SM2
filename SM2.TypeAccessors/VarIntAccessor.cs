@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SM2.Core.BaseTypes;
-using SM2.Core.BaseTypes.Abstractions;
+using AutoSerialize;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,13 +40,13 @@ namespace SM2.TypeAccessors
 
         public override void Write(Stream stream, VarInt val)
         {
-            while ((val & -128) != 0)
+            var v = (int)val;
+            while ((v & -128) != 0)
             {
-                 _accessorByte.Write(stream, (byte)(val & 127 | 128));
-                val = (int)(((uint)(int)val) >> 7);
+                _accessorByte.Write(stream, (byte)(v & 127 | 128));
+                v = (int)(((uint)v) >> 7);
             }
-
-             _accessorByte.Write(stream, (byte)val);
+            _accessorByte.Write(stream, (byte)val);
         }
     }
 }

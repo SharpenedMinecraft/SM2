@@ -1,30 +1,54 @@
-﻿using SM2.Core.BaseTypes;
+﻿using AutoSerialize;
+using SM2.Core.BaseTypes;
 using SM2.Core.BaseTypes.Enums;
 using SM2.Core.Server;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SM2.Packets
 {
-    class ClientSettings : Packet
+    public class ClientSettings : Packet
     {
-        public override ConnectionState RequiredState => throw new NotImplementedException();
-        public override ConnectionSide WritingSide => throw new NotImplementedException();
+        public override ConnectionState RequiredState { get; } = ConnectionState.Play;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
         public override VarInt Id { get; } = 0x04;
 
-        [PacketField(0)]
+        [AutoSerialize(0)]
         public string Locale;
-        [PacketField(1)]
+        [AutoSerialize(1)]
         public byte ViewDistance;
-        [PacketField(2)]
+        [AutoSerialize(2)]
         public ChatMode ChatMode; 
-        [PacketField(3)]
+        [AutoSerialize(3)]
         public bool ChatColors;
-        [PacketField(4)]
+        [AutoSerialize(4)]
         public DisplayedSkinParts DisplayedSkinParts;
-        [PacketField(5)]
+        [AutoSerialize(5)]
         public MainHand MainHand;
 
+        public override async Task PostRead()
+        {
+            _ctx.Player.Settings.Locale = Locale;
+            _ctx.Player.Settings.ViewDistance = ViewDistance;
+            _ctx.Player.Settings.ChatMode = ChatMode;
+            _ctx.Player.Settings.ChatColors = ChatColors;
+            _ctx.Player.Settings.DisplayedSkinParts = DisplayedSkinParts;
+            _ctx.Player.Settings.MainHand = MainHand;
+
+            _ctx.Client.Write(new PlayerPositionAndLookServer()
+            {
+                X = _ctx.Player.Position.X,
+                Y = _ctx.Player.Position.Y,
+                Z = _ctx.Player.Position.Z,
+                Yaw = _ctx.Player.Rotation.Yaw,
+                Pitch = _ctx.Player.Rotation.Pitch,
+                Flags = TransformFlags.NONE,
+                TeleportID = TeleportManager.CreateTP(_ctx.Player)
+            });
+
+            await base.PostRead();
+        }
     }
 }

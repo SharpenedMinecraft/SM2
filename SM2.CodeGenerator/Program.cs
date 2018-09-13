@@ -31,9 +31,6 @@ namespace SM2.CodeGenerator
                 }
                 catch { }
 
-            // TODO: Rework Block Generator to Use Local Nested Types instead of shared
-            // Besides Like Axis etc. there isnt a lot of them actually supposed to be shared
-
             Directory.CreateDirectory("./gen/");
             Directory.CreateDirectory("./gen/Blocks");
             var json = JsonBlocks.FromJson(File.ReadAllText("./blocks.json"));

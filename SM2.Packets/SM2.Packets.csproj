@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -6,8 +6,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SM2.Networking.Server\SM2.Core.Server.csproj" />
-    <ProjectReference Include="..\SM2.Serialization\SM2.Serialization.csproj" />
     <ProjectReference Include="..\SM2.TypeAccessors\SM2.TypeAccessors.csproj" />
+    <ProjectReference Include="C:\Users\HurricanKai\Source\Repos\AutoSerialize\AutoSerialize\AutoSerialize.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

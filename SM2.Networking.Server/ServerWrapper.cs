@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SM2.Core.BaseTypes;
 using SM2.Core.BaseTypes.Abstractions;
-using SM2.Serialization;
+using AutoSerialize;
 using SM2.TypeAccessors;
 using System;
 using System.Collections.Generic;
@@ -29,7 +29,11 @@ namespace SM2.Core.Server
             .AddSingleton<ITypeAccessor<UInt32>, UInt32Accessor>()
             .AddSingleton<ITypeAccessor<UInt64>, UInt64Accessor>()
             .AddSingleton<ITypeAccessor<VarInt>, VarIntAccessor>()
-            .AddSingleton<ITypeAccessor<String>, StringAccessor>();
+            .AddSingleton<ITypeAccessor<String>, StringAccessor>()
+            .AddSingleton<ITypeAccessor<Boolean>, BooleanAccessor>()
+            .AddSingleton<ITypeAccessor<Double>, DoubleAccessor>()
+            .AddSingleton<ITypeAccessor<Single>, FloatAccessor>()
+            .AddScoped<ITypeAccessor<Position>, PositionAccessor>();
     }
 
     public class ServerWrapper : TcpListener
@@ -38,6 +42,9 @@ namespace SM2.Core.Server
         private Task _listeningTask;
 
         public List<RemoteClient> Connections { get; private set; } = new List<RemoteClient>();
+        public Byte MaxPlayers { get; set; } = 200;
+        public Boolean OnlineMode { get; set; } = true;
+
         public const int ProtocolVersion = 401;
 
         public ServerWrapper(IPEndPoint endpoint) : base(endpoint)
@@ -48,17 +55,18 @@ namespace SM2.Core.Server
                 .GetTypes()
                 .Where(type => type.IsSubclassOf(typeof(Packet))).ToArray();
             Console.WriteLine($"Loaded {PacketTypes.Length} Packets");
-            Console.WriteLine($"Loaded TypeAccessors");
             IServiceProvider v = new ServiceCollection()
             .RegisterTypeAccessors()
-            .AddSingleton<IPacketSerializer, PacketSerializer>(x => {
+            .AddSingleton<IPacketSerializer, PacketSerializer>((provider) =>
+            {
                 var instance = new PacketSerializer();
-                instance.Build(PacketTypes, x);
+                instance.Build(PacketTypes, provider);
                 Console.WriteLine("Builded Packet Serializer");
-                Console.WriteLine("This is done on-demand, so the first client will have slightly longer connection times");
                 return instance;
             })
             .BuildServiceProvider();
+            var count = v.GetService<IPacketSerializer>().BuildTypes.Count(); // just to make shure the factory is called
+            Console.WriteLine($"Loaded TypeAccessors");
             Console.WriteLine("Loaded Service Provider");
             Console.WriteLine("Done Loading.");
 

@@ -1,6 +1,6 @@
 ﻿using SM2.Core.BaseTypes;
 using SM2.Core.BaseTypes.Abstractions;
-using SM2.Serialization;
+using AutoSerialize;
 using System;
 using System.Collections.Generic;
 using System.IO;

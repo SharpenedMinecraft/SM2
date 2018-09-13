@@ -1,5 +1,5 @@
 ﻿using SM2.Core.BaseTypes;
-using SM2.Core.BaseTypes.Abstractions;
+using AutoSerialize;
 using System;
 using System.Collections.Generic;
 using System.IO;

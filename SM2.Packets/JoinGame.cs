@@ -1,31 +1,57 @@
-﻿using SM2.Core.BaseTypes;
+﻿using AutoSerialize;
+using SM2.Core.BaseTypes;
 using SM2.Core.BaseTypes.Enums;
 using SM2.Core.Server;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SM2.Packets
 {
-    class JoinGame : Packet
+    public class JoinGame : Packet
     {
-        public override ConnectionState RequiredState => ConnectionState.Play;
-        public override ConnectionSide WritingSide => ConnectionSide.Server;
+        public override ConnectionState RequiredState { get; } = ConnectionState.Play;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Server;
         public override VarInt Id { get; } = 0x25;
 
-        [PacketField(0)]
+        [AutoSerialize(0)]
         public int EntityID;
-        [PacketField(1)]
+        [AutoSerialize(1)]
         public Gamemode Gamemode;
-        [PacketField(2)]
-        public Dimension Dimension;
-        [PacketField(3)]
+        [AutoSerialize(2)]
+        public int Dimension;
+        [AutoSerialize(3)]
         public Difficulty Difficulty;
-        [PacketField(4)]
+        [AutoSerialize(4)]
         public byte MaxPlayers;
-        [PacketField(5)]
+        [AutoSerialize(5)]
         public string LevelType;
-        [PacketField(6)]
+        [AutoSerialize(6)]
         public bool ReducedDebugInfo;
+
+        public override async Task PostWrite()
+        {
+            _ctx.Client.Write(new PluginMessageServer()
+            {
+                ChannelID = "minecraft:brand"
+            });
+            _ctx.Client.Write(new ServerDifficulty()
+            {
+                Difficulty = Difficulty.Easy
+            });
+            _ctx.Client.Write(new SpawnPosition()
+            {
+                SpawnPos = _ctx.Player.SpawnPosition
+            });
+            _ctx.Client.Write(new PlayerAbilities()
+            {
+                FieldOfViewModifier = 1f,
+                Flags = PlayerFlags.AllowFlying | PlayerFlags.CreativeMode | PlayerFlags.Flying | PlayerFlags.Invulnerable,
+                FlyingSpeed = 1f,
+            });
+
+            await base.PostWrite();
+        }
     }
 }

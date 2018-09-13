@@ -8,4 +8,12 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Attributes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\HurricanKai\Source\Repos\AutoSerialize\AutoSerialize\AutoSerialize.csproj" />
+  </ItemGroup>
+
 </Project>

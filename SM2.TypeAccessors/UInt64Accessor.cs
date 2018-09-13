@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SM2.Core.BaseTypes.Abstractions;
+using AutoSerialize;
 using System;
 using System.Collections.Generic;
 using System.IO;

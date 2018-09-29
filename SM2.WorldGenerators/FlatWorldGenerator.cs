@@ -35,14 +35,7 @@ namespace SM2.Dimensions
                             if (!mapping.TryGetValue(worldPos.Y, out block))
                                 block = Block.Factory.GetBlock<Air>();
                             block = block ?? Block.Factory.GetBlock<Air>();
-                            try
-                            {
-                                section[pos] = block;
-                            }
-                            catch (Exception ex)
-                            {
-
-                            }
+                            section[pos] = block;
                             //section[pos] = Block.Factory.GetBlock<Air>();
                         }
                     }

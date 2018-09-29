@@ -8,7 +8,7 @@ using System.Text;
 
 namespace SM2.Packets
 {
-    class PlayerAbilities : Packet
+    public class PlayerAbilities : Packet
     {
         public override ConnectionState RequiredState { get; } = ConnectionState.Play;
         public override ConnectionSide WritingSide { get; } = ConnectionSide.Server;

@@ -100,7 +100,16 @@ namespace SM2.Core.Server
                     int id = varIntAccessor.Read(stream);
                     try
                     {
-                        var info = serializer.BuildTypes.First(x => x.Id == id && x.RequiredState == _state);
+                        PacketSerializationInfo info;
+                        try
+                        {
+                            info = serializer.BuildTypes.First(x => x.Id == id && x.RequiredState == _state);
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            Console.WriteLine($"Coudnt find Packet 0x{id.ToString("X")}");
+                            return;
+                        }
                         var p = (Packet)Activator.CreateInstance(info.PacketType);
                         p.SetContext(_ctx);
                         await p.PreRead();

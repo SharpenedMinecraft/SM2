@@ -22,7 +22,5 @@ namespace SM2.Core.Server
         public Guid UUID { get; set; }
         public Position SpawnPosition { get; set; }
         public PlayerSettings Settings { get; set; }
-        public Rotation Rotation { get; set; }
-        public Vector3D Position { get; set; }
     }
 }

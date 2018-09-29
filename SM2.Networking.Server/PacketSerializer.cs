@@ -17,10 +17,24 @@ namespace SM2.Core.Server
             {
                 var v = new PacketSerializationInfo();
                 v.PacketType = t;
-                v.ReadAction =
-                    ExpressionBuilder.BuildRead(t, provider);
-                v.WriteAction =
-                    ExpressionBuilder.BuildWrite(t, provider);
+                try
+                {
+                    v.ReadAction =
+                        ExpressionBuilder.BuildRead(t, provider);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Read coud not be build, \"{ex.Message}\"");
+                }
+                try
+                {
+                    v.WriteAction =
+                        ExpressionBuilder.BuildWrite(t, provider);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Write coud not be build, \"{ex.Message}\"");
+                }
                 var instance = (IPacket)Activator.CreateInstance(t);
                 v.Id = instance.Id;
                 v.WritingSide = instance.WritingSide;

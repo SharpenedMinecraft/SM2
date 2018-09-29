@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SM2.Dimensions;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,6 +8,7 @@ namespace SM2.Core.BaseTypes
     public abstract class Entity
     {
         public int EntityID { get; }
+        public Dimension Dimension { get; private set; } = Dimension.Overworld;
 
         private static int _lastEntityID = 1;
         public static int GetNewEntityID() => ++_lastEntityID;

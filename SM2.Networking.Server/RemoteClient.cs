@@ -23,6 +23,8 @@ namespace SM2.Core.Server
         private readonly SemaphoreSlim _streamSemaphore = new SemaphoreSlim(1, 1);
         private readonly ConcurrentQueue<Packet> _readQueue = new ConcurrentQueue<Packet>();
         private readonly Task _readTask;
+        private readonly Task _writeTask;
+        private Queue<WriteInfo> _writeQueue = new Queue<WriteInfo>();
         private ConnectionState _state = ConnectionState.Handshake;
 
         public void SetState(ConnectionState newState)
@@ -37,6 +39,25 @@ namespace SM2.Core.Server
             _ctx.Player = new Player(_ctx);
             _ctx.Server.Connections.Add(this);
             _readTask = ReadLoop();
+            _writeTask = WriteLoop();
+        }
+
+        private class WriteInfo
+        {
+            public Type t;
+            public Packet instance;
+        }
+
+        private async Task WriteLoop()
+        {
+            while (_stream.CanWrite)
+            {
+                if (_writeQueue.Count > 0)
+                {
+                    var info = _writeQueue.Dequeue();
+                    await Write(info.t, info.instance);
+                }
+            }
         }
 
         private async Task ReadLoop()
@@ -108,55 +129,61 @@ namespace SM2.Core.Server
 
         public void Write<T>(T packet) where T : Packet, new()
         {
-            Task.Run(async () =>
+            _writeQueue.Enqueue(new WriteInfo()
             {
-                try
+               instance = packet,
+               t = typeof(T)
+            });
+        }
+
+        private async Task Write(Type type, Packet instance)
+        {
+            try
+            {
+                var serializer = _ctx.Provider.GetService<IPacketSerializer>();
+                instance.SetContext(_ctx);
+                await instance.PreWrite();
+                using (var stream = new MemoryStream())
                 {
-                    var serializer = _ctx.Provider.GetService<IPacketSerializer>();
-                    packet.SetContext(_ctx);
-                    await packet.PreWrite();
-                    using (var stream = new MemoryStream())
+                    var varIntAccessor = _ctx.Provider.GetService<ITypeAccessor<VarInt>>();
+                    var info = serializer.BuildTypes.First(x => x.PacketType == type);
+                    varIntAccessor.Write(stream, info.Id);
+                    info.WriteAction(stream, instance);
+                    using (var lengthStream = new MemoryStream())
                     {
-                        var varIntAccessor = _ctx.Provider.GetService<ITypeAccessor<VarInt>>();
-                        var info = serializer.BuildTypes.First(x => x.PacketType == typeof(T));
-                        varIntAccessor.Write(stream, info.Id);
-                        info.WriteAction(stream, packet);
-                        using (var lengthStream = new MemoryStream())
+                        varIntAccessor.Write(lengthStream, (int)stream.Position);
+                        stream.Position = 0;
+                        await stream.CopyToAsync(lengthStream);
+                        try
                         {
-                            varIntAccessor.Write(lengthStream, (int)stream.Position);
-                            stream.Position = 0;
-                            await stream.CopyToAsync(lengthStream);
-                            try
+                            await _streamSemaphore.WaitAsync();
+                            lengthStream.Position = 0;
+                            /*string s = "";
+                            while (true)
                             {
-                                await _streamSemaphore.WaitAsync();
-                                lengthStream.Position = 0;
-                                /*string s = "";
-                                while (true)
-                                {
-                                    var v = lengthStream.ReadByte();
-                                    if (v == -1)
-                                        break;
-                                    s += (byte)v;
-                                    s += "\n";
-                                }*/
-                                await lengthStream.CopyToAsync(_stream);
-                            }
-                            finally
-                            {
-                                _streamSemaphore.Release();
-                            }
+                                var v = lengthStream.ReadByte();
+                                if (v == -1)
+                                    break;
+                                s += (byte)v;
+                                s += "\n";
+                            }*/
+                            await lengthStream.CopyToAsync(_stream);
+                        }
+                        finally
+                        {
+                            _streamSemaphore.Release();
                         }
                     }
-                    await packet.PostWrite();
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error while Trying to Write Packet: 0x{((int)packet.Id).ToString("X")}, CurrentState: {_state}");
-                    Console.WriteLine();
-                    Console.WriteLine(ex);
-                    Console.WriteLine();
-                }
-            });
+                await instance.PostWrite();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while Trying to Write Packet: 0x{((int)instance.Id).ToString("X")}, CurrentState: {_state}");
+                Console.WriteLine();
+                Console.WriteLine(ex);
+                Console.WriteLine();
+            }
         }
 
 

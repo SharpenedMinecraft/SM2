@@ -1,8 +1,9 @@
-﻿using System;
+﻿using SM2.Core.BaseTypes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SM2.Core.BaseTypes
+namespace SM2.Dimensions
 {
     public class Dimension
     {
@@ -15,12 +16,17 @@ namespace SM2.Core.BaseTypes
                 Amplified = "amplified";
             [Obsolete("This shoud no longer be used", false)]
             public const string Default_1_1 = "default_1_1";
+
+            public static Dictionary<string, IWorldGenerator> Generators = new Dictionary<string, IWorldGenerator>();
         }
 
-        public static Dimension Overworld = new Dimension(1);
+        public static Dimension Overworld = new Dimension(0);
 
         public int DimensionId { get; }
+        private readonly Dictionary<Vector2, Chunk> _chunks = new Dictionary<Vector2, Chunk>();
         private string _type;
+        private IWorldGenerator _worldGen;
+
         public string Type
         {
             get { return _type; }
@@ -40,6 +46,24 @@ namespace SM2.Core.BaseTypes
         {
             DimensionId = Id;
             _type = LevelType.Flat;
+            _worldGen = LevelType.Generators[_type];
+        }
+
+        public Chunk GetChunk(Vector2 position)
+        {
+            lock (_chunks)
+            {
+                if (!_chunks.TryGetValue(position, out Chunk res))
+                {
+                    res = _worldGen.Generate(position);
+                }
+                return res;
+            }
+        }
+
+        public Boolean HasSkylight()
+        {
+            return true;
         }
     }
 }

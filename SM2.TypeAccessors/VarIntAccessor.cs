@@ -20,33 +20,37 @@ namespace SM2.TypeAccessors
 
         public override VarInt Read(Stream stream)
         {
-            var v = 0;
+            var val = 0;
             var size = 0;
-            int b;
-            while (((b =  _accessorByte.Read(stream)) & 0x80) == 0x80)
+            int readData;
+            while (((readData =  _accessorByte.Read(stream)) & 0x80) == 0x80)
             {
-                if (b == -1)
+                if (readData == -1)
                     throw new EndOfStreamException();
 
-                v |= (b & 0x7F) << (size++ * 7);
+                val |= (readData & 0x7F) << (size++ * 7);
                 if (size > 5)
                 {
                     throw new IOException("VarInt too long. Hehe that's punny.");
                 }
             }
-            VarInt value = (v | ((b & 0x7F) << (size * 7)));
-            return value;
+            return (val | ((readData & 0x7F) << (size * 0x7)));
         }
 
         public override void Write(Stream stream, VarInt val)
         {
+            var size = 0;
             var v = (int)val;
-            while ((v & -128) != 0)
+            while ((v & -0x80) != 0)
             {
-                _accessorByte.Write(stream, (byte)(v & 127 | 128));
+                if (size > 5)
+                    throw new IOException("VarInt too long, its just, i can't handle that");
+
+                _accessorByte.Write(stream, (byte)(v & 0x7F | 0x80));
                 v = (int)(((uint)v) >> 7);
+                size++;
             }
-            _accessorByte.Write(stream, (byte)val);
+            _accessorByte.Write(stream, (byte)(v));
         }
     }
 }

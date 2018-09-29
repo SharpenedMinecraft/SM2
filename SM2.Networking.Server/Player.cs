@@ -12,7 +12,7 @@ namespace SM2.Core.Server
         public Player(Context ctx)
         {
             _ctx = ctx;
-            Position = new Vector3D(0, 0, 0);
+            Position = new Vector3D(0, 10, 0);
             Rotation = new Rotation(0, 0);
             SpawnPosition = new Position(0, 0, 0);
             Settings = new PlayerSettings();

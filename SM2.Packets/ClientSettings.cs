@@ -37,17 +37,6 @@ namespace SM2.Packets
             _ctx.Player.Settings.DisplayedSkinParts = DisplayedSkinParts;
             _ctx.Player.Settings.MainHand = MainHand;
 
-            _ctx.Client.Write(new PlayerPositionAndLookServer()
-            {
-                X = _ctx.Player.Position.X,
-                Y = _ctx.Player.Position.Y,
-                Z = _ctx.Player.Position.Z,
-                Yaw = _ctx.Player.Rotation.Yaw,
-                Pitch = _ctx.Player.Rotation.Pitch,
-                Flags = TransformFlags.NONE,
-                TeleportID = TeleportManager.CreateTP(_ctx.Player)
-            });
-
             await base.PostRead();
         }
     }

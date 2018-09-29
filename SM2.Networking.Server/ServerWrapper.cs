@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SM2.Dimensions;
 
 namespace SM2.Core.Server
 {
@@ -50,6 +51,7 @@ namespace SM2.Core.Server
         public ServerWrapper(IPEndPoint endpoint) : base(endpoint)
         {
             Console.WriteLine("Loading...");
+            ExpressionBuilder.ArrayHeadNumericType = typeof(VarInt);
             var PacketTypes = Assembly
                 .LoadFile(Path.GetFullPath("./SM2.Packets.dll"))
                 .GetTypes()
@@ -68,6 +70,7 @@ namespace SM2.Core.Server
             var count = v.GetService<IPacketSerializer>().BuildTypes.Count(); // just to make shure the factory is called
             Console.WriteLine($"Loaded TypeAccessors");
             Console.WriteLine("Loaded Service Provider");
+            Dimension.LevelType.Generators.Add(Dimension.LevelType.Flat, new FlatWorldGenerator());
             Console.WriteLine("Done Loading.");
 
             _ctx = new Context()

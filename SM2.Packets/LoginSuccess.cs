@@ -2,6 +2,7 @@
 using SM2.Core.BaseTypes;
 using SM2.Core.BaseTypes.Enums;
 using SM2.Core.Server;
+using SM2.Dimensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,15 +28,62 @@ namespace SM2.Packets
             {
                 //TODO: Propper World Stuff
                 Difficulty = Difficulty.Easy, // also send in ServerDifficulty Packet
-                Dimension = Dimension.Overworld.DimensionId, // Will this work?
+                Dimension = _ctx.Player.Dimension.DimensionId,
                 EntityID = _ctx.Player.EntityID,
                 Gamemode = Gamemode.Creative, // Please fill with propper
-                LevelType = Dimension.Overworld.Type, // Others
+                LevelType = _ctx.Player.Dimension.Type, // Others
                 MaxPlayers = _ctx.Server.MaxPlayers,
                 ReducedDebugInfo = false
             });
+            _ctx.Client.Write(new PluginMessageServer()
+            {
+                ChannelID = "minecraft:brand"
+            });
+            _ctx.Client.Write(new ServerDifficulty()
+            {
+                Difficulty = Difficulty.Easy
+            });
+            _ctx.Client.Write(new SpawnPosition()
+            {
+                SpawnPos = _ctx.Player.SpawnPosition
+            });
+            _ctx.Client.Write(new PlayerAbilities()
+            {
+                FieldOfViewModifier = 1f,
+                Flags = PlayerFlags.AllowFlying | PlayerFlags.CreativeMode | PlayerFlags.Flying | PlayerFlags.Invulnerable,
+                FlyingSpeed = 1f,
+            });
+            DoTheChunks();
+            _ctx.Client.Write(new PlayerPositionAndLookServer()
+            {
+                X = _ctx.Player.Position.X,
+                Y = _ctx.Player.Position.Y,
+                Z = _ctx.Player.Position.Z,
+                Yaw = _ctx.Player.Rotation.Yaw,
+                Pitch = _ctx.Player.Rotation.Pitch,
+                Flags = TransformFlags.NONE,
+                TeleportID = TeleportManager.CreateTP(_ctx.Player)
+            });
 
             await base.PostWrite();
+        }
+
+        private void DoTheChunks()
+        {
+            var baseChunk = ((Position)_ctx.Player.Position).WorldToChunk(out Position _);
+            for (int x = -3; x <= 4; x++)
+            {
+                for (int z = -3; z <= 4; z++)
+                {
+                    Console.WriteLine($"Enquing {x + baseChunk.X},{z + baseChunk.Z}");
+                    _ctx.Client.Write(new ChunkData()
+                    {
+                        ChunkX = (int)(x + baseChunk.X),
+                        ChunkZ = (int)(z + baseChunk.Z),
+                        GroundUpContinous = true
+                    });
+                }
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ namespace SM2.Core.BaseTypes
     [AutoConvertTo(typeof(int))]
     public class VarInt
     {
+
         private int _val;
         private VarInt(int val) { _val = val; }
 

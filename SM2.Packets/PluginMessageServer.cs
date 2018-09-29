@@ -12,11 +12,11 @@ namespace SM2.Packets
 {
     public class PluginMessageServer : Packet
     {
-        public override ConnectionState RequiredState => ConnectionState.Play;
+        public override ConnectionState RequiredState { get; } = ConnectionState.Play;
 
-        public override ConnectionSide WritingSide => ConnectionSide.Client;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
 
-        public override VarInt Id => 0x19;
+        public override VarInt Id { get; } = 0x19;
 
         [AutoSerialize(0)]
         public string ChannelID;

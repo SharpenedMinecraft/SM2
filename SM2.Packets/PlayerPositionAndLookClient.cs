@@ -29,6 +29,12 @@ namespace SM2.Packets
 
         public override async Task PostRead()
         {
+            var newPos = new Vector3D(X, FeetY, Z);
+            Utils.UpdatePosition(_ctx.Client, _ctx.Player, newPos, OnGround);
+            var newRot = new Rotation(Pitch, Yaw);
+
+            _ctx.Player.Rotation = newRot;
+            _ctx.Player.Position = newPos;
             // TODO: Process PlayerPositionAndLookClient
             await base.PostRead();
         }

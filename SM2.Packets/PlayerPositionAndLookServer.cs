@@ -5,10 +5,11 @@ using SM2.Core.Server;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SM2.Packets
 {
-    class PlayerPositionAndLookServer : Packet
+    public class PlayerPositionAndLookServer : Packet
     {
         public override ConnectionState RequiredState { get; } = ConnectionState.Play;
         public override ConnectionSide WritingSide { get; } = ConnectionSide.Server;
@@ -28,5 +29,11 @@ namespace SM2.Packets
         public TransformFlags Flags;
         [AutoSerialize(4)]
         public VarInt TeleportID;
+
+        public override Task PostWrite()
+        {
+            _ctx.Client.SyncReady();
+            return base.PostWrite();
+        }
     }
 }

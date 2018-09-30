@@ -23,6 +23,7 @@ namespace SM2.Dimensions
         public static Dimension Overworld = new Dimension(0);
 
         public int DimensionId { get; }
+
         private readonly Dictionary<Vector2, Chunk> _chunks = new Dictionary<Vector2, Chunk>();
         private string _type;
         private IWorldGenerator _worldGen;
@@ -56,6 +57,7 @@ namespace SM2.Dimensions
                 if (!_chunks.TryGetValue(position, out Chunk res))
                 {
                     res = _worldGen.Generate(position);
+                    _chunks[position] = res;
                 }
                 return res;
             }
@@ -64,6 +66,29 @@ namespace SM2.Dimensions
         public Boolean HasSkylight()
         {
             return true;
+        }
+
+
+        List<Entity> Registered = new List<Entity>();
+        public IEnumerable<Entity> GetEntities()
+        {
+            foreach (var v in Registered.ToArray())
+            {
+                if (v == null)
+                    Registered.Remove(v);
+            }
+
+            return Registered;
+        }
+
+        public void Register(Entity entity)
+        {
+            Registered.Add(entity);
+        }
+
+        public void Unregister(Entity entity)
+        {
+            Registered.Remove(entity);
         }
     }
 }

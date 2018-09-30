@@ -19,7 +19,7 @@ namespace SM2.Dimensions
         public Chunk Generate(Vector2 ChunkPos)
         {
             var v = new Chunk();
-            Console.WriteLine($"Generating {ChunkPos.X}, {ChunkPos.Z}");
+            // Console.WriteLine($"Generating {ChunkPos.X}, {ChunkPos.Z}");
             for (int sectionY = 0; sectionY < Chunk.SectionHeight; sectionY++)
             {
                 var section = new ChunkSection();

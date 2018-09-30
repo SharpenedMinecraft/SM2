@@ -14,7 +14,7 @@ namespace SM2.Packets
     {
         public override ConnectionState RequiredState { get; } = ConnectionState.Play;
 
-        public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Server;
 
         public override VarInt Id { get; } = 0x19;
 
@@ -33,6 +33,9 @@ namespace SM2.Packets
                 {
                     case "minecraft:brand":
                         _ctx.Provider.GetService<ITypeAccessor<String>>().Write(data, "SM2");
+                        break;
+                    default:
+                        logger.Info($"Unknown Plugin Channel {ChannelID}");
                         break;
                 }
                 ChannelData = data.ToArray();

@@ -5,11 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NLog;
 
 namespace SM2.Core.Server
 {
     public class PacketSerializer : IPacketSerializer
     {
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
         public List<PacketSerializationInfo> BuildTypes { get; } = new List<PacketSerializationInfo>();
         public void Build(Type[] packetTypes, IServiceProvider provider)
         {
@@ -24,7 +26,7 @@ namespace SM2.Core.Server
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Read coud not be build, \"{ex.Message}\"");
+                    logger.Debug($"Read coud not be build, \"{ex.Message}\"");
                 }
                 try
                 {
@@ -33,7 +35,7 @@ namespace SM2.Core.Server
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Write coud not be build, \"{ex.Message}\"");
+                    logger.Debug($"Write coud not be build, \"{ex.Message}\"");
                 }
                 var instance = (IPacket)Activator.CreateInstance(t);
                 v.Id = instance.Id;

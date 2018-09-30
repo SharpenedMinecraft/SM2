@@ -12,7 +12,7 @@ namespace SM2.Packets
     public class PlayerLook : Packet
     {
         public override ConnectionState RequiredState { get; } = ConnectionState.Play;
-        public override ConnectionSide WritingSide { get; } = ConnectionSide.Server;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
         public override VarInt Id { get; } = 0x12;
 
         [AutoSerialize(0)]
@@ -22,12 +22,11 @@ namespace SM2.Packets
         [AutoSerialize(2)]
         public bool OnGround;
 
-        public override Task PostRead()
+        public override async Task PostRead()
         {
             _ctx.Player.Rotation = new Rotation(Pitch, Yaw);
             _ctx.Player.OnGround = OnGround;
-
-            return base.PostRead();
+            
         }
 
     }

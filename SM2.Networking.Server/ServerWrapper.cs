@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SM2.Dimensions;
+using NLog;
 
 namespace SM2.Core.Server
 {
@@ -34,11 +35,13 @@ namespace SM2.Core.Server
             .AddSingleton<ITypeAccessor<Boolean>, BooleanAccessor>()
             .AddSingleton<ITypeAccessor<Double>, DoubleAccessor>()
             .AddSingleton<ITypeAccessor<Single>, FloatAccessor>()
-            .AddScoped<ITypeAccessor<Position>, PositionAccessor>();
+            .AddSingleton<ITypeAccessor<Position>, PositionAccessor>()
+            .AddSingleton<ITypeAccessor<Guid>, GUIDAccessor>();
     }
 
     public class ServerWrapper : TcpListener
     {
+        private readonly Logger logger = LogManager.GetLogger("SERVER-MAIN");
         private readonly Context _ctx;
         private Task _listeningTask;
 
@@ -50,57 +53,63 @@ namespace SM2.Core.Server
 
         public ServerWrapper(IPEndPoint endpoint) : base(endpoint)
         {
-            Console.WriteLine("Loading...");
+            logger.Info("Loading...");
             ExpressionBuilder.ArrayHeadNumericType = typeof(VarInt);
             var PacketTypes = Assembly
                 .LoadFile(Path.GetFullPath("./SM2.Packets.dll"))
                 .GetTypes()
                 .Where(type => type.IsSubclassOf(typeof(Packet))).ToArray();
-            Console.WriteLine($"Loaded {PacketTypes.Length} Packets");
+            logger.Info($"Loaded {PacketTypes.Length} Packets");
             IServiceProvider v = new ServiceCollection()
             .RegisterTypeAccessors()
             .AddSingleton<IPacketSerializer, PacketSerializer>((provider) =>
             {
                 var instance = new PacketSerializer();
                 instance.Build(PacketTypes, provider);
-                Console.WriteLine("Builded Packet Serializer");
+                logger.Debug("Builded Packet Serializer");
                 return instance;
             })
             .BuildServiceProvider();
             var count = v.GetService<IPacketSerializer>().BuildTypes.Count(); // just to make shure the factory is called
-            Console.WriteLine($"Loaded TypeAccessors");
-            Console.WriteLine("Loaded Service Provider");
+            logger.Info($"Loaded TypeAccessors");
+            logger.Info("Loaded Service Provider");
             Dimension.LevelType.Generators.Add(Dimension.LevelType.Flat, new FlatWorldGenerator());
-            Console.WriteLine("Done Loading.");
+            logger.Info("Done Loading.");
 
             _ctx = new Context()
             {
                 Server = this,
                 Provider = v,
             };
-            Console.WriteLine("Created Context");
-            Console.WriteLine("We are all set!");
+            logger.Info("Created Context");
+            logger.Info("We are all set!");
         }
 
         public new void Start()
         {
             base.Start();
             _listeningTask = Listening();
-            Console.WriteLine("Started");
-            Console.WriteLine($"Clients can now Connect to {((IPEndPoint)LocalEndpoint).Address.ToString()}:{((IPEndPoint)LocalEndpoint).Port}");
+            _listeningTask.ConfigureAwait(false);
+            logger.Info("Started");
+            logger.Info($"Clients can now Connect to {((IPEndPoint)LocalEndpoint).Address.ToString()}:{((IPEndPoint)LocalEndpoint).Port}");
         }
 
         private async Task Listening()
         {
             while (Active)
             {
-                var newConnection = await AcceptTcpClientAsync();
-                CreateClient(new MinecraftTcpConnection(newConnection));
-                Console.WriteLine("Accepted new Client");
+                while (Pending())
+                {
+                    var newConnection = await AcceptTcpClientAsync();
+                    CreateClient(new MinecraftTcpConnection(newConnection));
+                    logger.Info("Accepted new Client");
+                }
+                await Task.Delay(100);
             }
+            logger.Fatal("Ended");
         }
 
-        internal void CreateClient(IMinecraftConnection connection)
+        private void CreateClient(IMinecraftConnection connection)
         {
             new RemoteClient(connection, (Context)_ctx.Clone());
         }

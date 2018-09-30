@@ -7,6 +7,7 @@ namespace SM2.Core.BaseTypes
 {
     public abstract class Entity
     {
+
         public int EntityID { get; }
         public Dimension Dimension { get; private set; } = Dimension.Overworld;
         public bool OnGround { get; set; }
@@ -19,6 +20,12 @@ namespace SM2.Core.BaseTypes
         protected Entity()
         {
             EntityID = GetNewEntityID();
+            Dimension.Register(this);
+        }
+
+        public void Kill()
+        {
+            Dimension.Unregister(this);
         }
     }
 }

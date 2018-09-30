@@ -1,4 +1,5 @@
 ﻿using AutoSerialize;
+using NLog;
 using SM2.Core.BaseTypes;
 using SM2.Core.Server;
 using System;
@@ -29,10 +30,11 @@ namespace SM2.Packets
                        PacketCryptography.PublicKeyToAsn1(Utils.ServerKey)))
                        .Result;
                 else*/
-                _ctx.Player.UUID = Utils.GetUUID(_ctx.Player).Result;
+                _ctx.Player.UUID = await Core.BaseTypes.Utils.GetUUID(_ctx.Player);
+                _ctx.Player.Profile = await _ctx.Player.GetProfileAsync();
             }
             else
-                _ctx.Player.UUID = Utils.NameGuidFromBytes(Encoding.UTF8.GetBytes($"OfflinePlayer:{_ctx.Player.Username}"));
+                _ctx.Player.UUID = Core.BaseTypes.Utils.NameGuidFromBytes(Encoding.UTF8.GetBytes($"OfflinePlayer:{_ctx.Player.Username}"));
             
             _ctx.Client.Write(new LoginSuccess()
             {
@@ -41,7 +43,8 @@ namespace SM2.Packets
             });
 
             await base.PostRead();
-            Console.WriteLine($"Hello {_ctx.Player.Username} ({_ctx.Player.UUID})");
+            logger.Info($"Hello {_ctx.Player.Username} ({_ctx.Player.UUID})");
+            _ctx.Logger = LogManager.GetLogger($"{_ctx.Player.Username} - {_ctx.Player.UUID}");
         }
     }
 }

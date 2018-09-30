@@ -9,27 +9,24 @@ using System.Threading.Tasks;
 
 namespace SM2.Packets
 {
-    class ClientStatus : Packet
+    public class EntityAction : Packet
     {
         public override ConnectionState RequiredState { get; } = ConnectionState.Play;
         public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
-        public override VarInt Id { get; } = 0x03;
+        public override VarInt Id { get; } = 0x19;
 
         [AutoSerialize(0)]
-        public StatusActionID ActionID;
+        public VarInt EntityId;
+        [AutoSerialize(1)]
+        public EntityActionID Action;
+        [AutoSerialize(2)]
+        public VarInt JumpBoost = 0;
 
-        public override async Task PostRead()
+        public override Task PostRead()
         {
-            if (ActionID == StatusActionID.Respawn)
-            {
-                // TODO: Respawning
-            }
-            if (ActionID == StatusActionID.Stats)
-            {
-                // TODO: Stats
-            }
+            logger.Info($"{Enum.GetName(typeof(EntityActionID), Action)}");
 
-            await base.PostRead();
+            return base.PostRead();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using SM2.Core.Server;
+﻿using NLog;
+using SM2.Core.Server;
+using SM2.MojangAPI;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -11,6 +13,18 @@ namespace SM2.Core.BaseTypes
     public static class Utils
     {
         // From Craft.Net: https://github.com/SirCmpwn/Craft.Net
+
+        public static async Task<MojangPlayerProfile> GetProfileAsync(this Player p)
+        {
+            using (var wc = new HttpClient())
+            {
+                var result = await wc.GetAsync($"https://sessionserver.mojang.com/session/minecraft/profile/{p.UUID.ToString().Replace("-", "")}");
+                if (!result.IsSuccessStatusCode)
+                    throw new Exception(result.ReasonPhrase);
+                var c = await result.Content.ReadAsStringAsync();
+                return MojangPlayerProfile.FromJson(c);
+            }
+        }
 
         /// <summary>
         /// Creates a Java-style SHA-1 hash.
@@ -69,34 +83,6 @@ namespace SM2.Core.BaseTypes
             return res;
         }
 
-        public static async Task<Guid> GetUUID(Player p, string hash)
-        {
-            Guid u;
-            try
-            {
-                using (var wc = new HttpClient())
-                {
-                    var result = await wc.GetAsync($"https://sessionserver.mojang.com/session/minecraft/hasJoined?username={p.Username}&serverId={hash}"); //&ip={p.UsedServerIP} ?
-                    if (!result.IsSuccessStatusCode)
-                        return Guid.NewGuid();
-                    var Sresult = await result.Content.ReadAsStringAsync();
-                    var _result = Sresult.Split('"');
-                    if (_result.Length > 1)
-                    {
-                        var uuid = _result[4];
-                        u = new Guid(uuid);
-                    }
-                    u = Guid.NewGuid();
-                }
-            }
-            catch
-            {
-                u = Guid.NewGuid();
-            }
-
-            return u;
-        }
-
         public static async Task<Guid> GetUUID(Player p)
         {
             Guid u;
@@ -115,7 +101,10 @@ namespace SM2.Core.BaseTypes
                     u = new Guid(uuid);
                 }
                 else
+                {
+                    LogManager.GetCurrentClassLogger().Info($"Coudnt get UUID for {p.Username}");
                     u = Guid.NewGuid();
+                }
             }
 
             return u;

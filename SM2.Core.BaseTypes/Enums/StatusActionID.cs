@@ -6,7 +6,7 @@ using System.Text;
 namespace SM2.Core.BaseTypes.Enums
 {
     [AutoSerializeAs(typeof(VarInt))]
-    public enum ActionID
+    public enum StatusActionID
     {
         Respawn, 
         Stats

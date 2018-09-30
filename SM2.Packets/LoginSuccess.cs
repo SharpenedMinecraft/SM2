@@ -5,6 +5,7 @@ using SM2.Core.Server;
 using SM2.Dimensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,7 +31,7 @@ namespace SM2.Packets
                 Difficulty = Difficulty.Easy, // also send in ServerDifficulty Packet
                 Dimension = _ctx.Player.Dimension.DimensionId,
                 EntityID = _ctx.Player.EntityID,
-                Gamemode = Gamemode.Creative, // Please fill with propper
+                Gamemode = _ctx.Player.GameMode,
                 LevelType = _ctx.Player.Dimension.Type, // Others
                 MaxPlayers = _ctx.Server.MaxPlayers,
                 ReducedDebugInfo = false
@@ -65,7 +66,25 @@ namespace SM2.Packets
                 TeleportID = TeleportManager.CreateTP(_ctx.Player)
             });
 
+            SpawnOthers();
+            _ctx.Client.Write(new PlayerListItem() { Action = PlayerListAction.AddPlayer, Player = _ctx.Player });
+            _ctx.Client.Broadcast(new PlayerListItem() { Action = PlayerListAction.AddPlayer, Player = _ctx.Player });
+            _ctx.Client.Broadcast(new SpawnPlayer(_ctx.Player));
+            _ctx.Client.Write(new KeepAliveClient());
+
             await base.PostWrite();
+        }
+
+        private void SpawnOthers()
+        {
+            foreach (var player in _ctx.Player.Dimension.GetEntities().Where(x => x.GetType() == typeof(Player)).Select(x => (Player)x))
+            {
+                if (player.EntityID != _ctx.Player.EntityID)
+                {
+                    _ctx.Client.Write(new PlayerListItem() { Action = PlayerListAction.AddPlayer, Player = player });
+                    _ctx.Client.Write(new SpawnPlayer(player));
+                }
+            }
         }
 
         private void DoTheChunks()
@@ -75,7 +94,7 @@ namespace SM2.Packets
             {
                 for (int z = -3; z <= 4; z++)
                 {
-                    Console.WriteLine($"Enquing {x + baseChunk.X},{z + baseChunk.Z}");
+                    // Console.WriteLine($"Enquing {x + baseChunk.X},{z + baseChunk.Z}");
                     _ctx.Client.Write(new ChunkData()
                     {
                         ChunkX = (int)(x + baseChunk.X),

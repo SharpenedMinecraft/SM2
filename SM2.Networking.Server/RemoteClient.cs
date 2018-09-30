@@ -12,23 +12,36 @@ using System.Threading;
 using System.Reflection;
 using SM2.Core.BaseTypes.Abstractions;
 using AutoSerialize;
+using NLog;
+using System.Net;
 
 namespace SM2.Core.Server
 {
     public class RemoteClient : IDisposable
     {
+        private static int NextConnectionId = 0;
+
+        private readonly int _connectionId = ++NextConnectionId;
         private readonly NetworkStream _stream;
         private readonly IMinecraftConnection _connection;
         private readonly Context _ctx;
         private readonly SemaphoreSlim _streamSemaphore = new SemaphoreSlim(1, 1);
-        private readonly ConcurrentQueue<Packet> _readQueue = new ConcurrentQueue<Packet>();
         private readonly Task _readTask;
         private readonly Task _writeTask;
+        private long _lastKeepAliveId;
+        private DateTime _lastKeepAliveTime;
+        private Logger logger => _ctx.Logger;
+        public bool ReadyForSync { get; private set; }
+        public int Latency { get; private set; } = -1;
+
+        public void SyncReady()
+            => ReadyForSync = true;
+
         private Queue<WriteInfo> _writeQueue = new Queue<WriteInfo>();
-        private ConnectionState _state = ConnectionState.Handshake;
+        public ConnectionState State { get; private set; } = ConnectionState.Handshake;
 
         public void SetState(ConnectionState newState)
-            => _state = newState;
+            => State = newState;
 
         public RemoteClient(IMinecraftConnection connection, Context ctx)
         {
@@ -37,20 +50,89 @@ namespace SM2.Core.Server
             _ctx = ctx;
             _ctx.Client = this;
             _ctx.Player = new Player(_ctx);
+            _ctx.Logger = LogManager.GetLogger($"{GetIPAddress()}");
+            _readTask = Task.Factory.StartNew(() => ReadLoop().ConfigureAwait(false).GetAwaiter().GetResult());
+            _writeTask = Task.Factory.StartNew(() => WriteLoop().ConfigureAwait(false).GetAwaiter().GetResult());
             _ctx.Server.Connections.Add(this);
-            _readTask = ReadLoop();
-            _writeTask = WriteLoop();
         }
 
-        private class WriteInfo
+        private string GetIPAddress()
         {
-            public Type t;
-            public Packet instance;
+            var remoteIpEndPoint = _connection.Socket.RemoteEndPoint as IPEndPoint;
+            var localIpEndPoint = _connection.Socket.LocalEndPoint as IPEndPoint;
+
+            if (remoteIpEndPoint != null)
+            {
+                return $"{remoteIpEndPoint.Address}:{remoteIpEndPoint.Port}";
+            }
+
+            if (localIpEndPoint != null)
+            {
+                return $"{localIpEndPoint.Address}:{localIpEndPoint.Port}";
+            }
+
+            return "Unknown";
         }
 
+        public void CloseConnection(string message = "")
+        {
+            logger.Fatal($"CONNECTION CLOSED. (Reason: {message})");
+            Dispose();
+        }
+
+        public void Broadcast<T>(T packet) where T : Packet
+        {
+            foreach (var client in _ctx.Server.Connections)
+            {
+                if (client._connectionId != _connectionId && client.State == ConnectionState.Play && client.ReadyForSync)
+                {
+                    client.Write(packet);
+                }
+            }
+        }
+
+        #region Keep Alive
+        public void SendKeepalive(long id)
+        {
+            _lastKeepAliveId = id;
+            _lastKeepAliveTime = DateTime.UtcNow;
+            logger.Debug($"Keepalive Send (id: {id})");
+        }
+        public void ReceivedKeepalive<SendT>(long id) where SendT : Packet, new()
+        {
+            try
+            {
+                logger.Debug($"Keepalive Received (id: {id})");
+                if (_lastKeepAliveId != id)
+                    throw new Exception("Wrong Id");
+                var timeout = _lastKeepAliveTime + TimeSpan.FromSeconds(30);
+                if (timeout < DateTime.UtcNow)
+                    throw new Exception("Timeout");
+                Latency = (int)(DateTime.UtcNow - _lastKeepAliveTime).TotalMilliseconds;
+
+                Task.Run(async () =>
+                {
+                    var end = _lastKeepAliveTime + TimeSpan.FromSeconds(15);
+                    while (true)
+                    {
+                        if (DateTime.UtcNow >= end)
+                            break;
+                        await Task.Delay(1000); // this is ok ;d
+                    }
+                    Write((SendT)Activator.CreateInstance(typeof(SendT)));
+                });
+            }
+            catch (Exception ex)
+            {
+                CloseConnection(ex.Message);
+            }
+        }
+        #endregion
+
+        #region Loops
         private async Task WriteLoop()
         {
-            while (_stream.CanWrite)
+            while (_stream?.CanWrite ?? false)
             {
                 if (_writeQueue.Count > 0)
                 {
@@ -62,7 +144,7 @@ namespace SM2.Core.Server
 
         private async Task ReadLoop()
         {
-            while (_stream.CanRead)
+            while (_stream?.CanRead ?? false)
             {
                 if (_stream.DataAvailable)
                 {
@@ -72,7 +154,7 @@ namespace SM2.Core.Server
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex);
+                        logger.Error(ex);
                     }
                 }
                 else
@@ -80,7 +162,8 @@ namespace SM2.Core.Server
             }
             this.Dispose();
         }
-
+        #endregion
+        #region Read
         private async Task ReadOnePacket()
         {
             var serializer = _ctx.Provider.GetService<IPacketSerializer>();
@@ -103,11 +186,11 @@ namespace SM2.Core.Server
                         PacketSerializationInfo info;
                         try
                         {
-                            info = serializer.BuildTypes.First(x => x.Id == id && x.RequiredState == _state);
+                            info = serializer.BuildTypes.First(x => x.Id == id && x.RequiredState == State && x.WritingSide == ConnectionSide.Client);
                         }
                         catch (InvalidOperationException ex)
                         {
-                            Console.WriteLine($"Coudnt find Packet 0x{id.ToString("X")}");
+                            logger.Warn($"Coudnt find Packet 0x{id.ToString("X")}");
                             return;
                         }
                         var p = (Packet)Activator.CreateInstance(info.PacketType);
@@ -116,18 +199,26 @@ namespace SM2.Core.Server
                         info.ReadAction(stream, p);
                         await p.PostRead();
                     }
+                    catch (SocketException ex)
+                    {
+                        this.Dispose();
+                    }
+                    catch (IOException ex)
+                    {
+                        this.Dispose();
+                    }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error while Trying to Read Packet: 0x{id.ToString("X")}, CurrentState: {_state}");
-                        Console.WriteLine();
-                        Console.WriteLine(ex);
-                        Console.WriteLine();
+                        logger.Warn($"Error while Trying to Read Packet: 0x{id.ToString("X")}, CurrentState: {State}");
+                        logger.Warn("Start Exception:");
+                        logger.Warn(ex);
+                        logger.Warn("End Exception");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                logger.Error(ex);
             }
             finally
             {
@@ -135,8 +226,15 @@ namespace SM2.Core.Server
                     _streamSemaphore.Release();
             }
         }
+        #endregion
+        #region Write
+        private class WriteInfo
+        {
+            public Type t;
+            public Packet instance;
+        }
 
-        public void Write<T>(T packet) where T : Packet, new()
+        public void Write<T>(T packet) where T : Packet
         {
             _writeQueue.Enqueue(new WriteInfo()
             {
@@ -186,20 +284,34 @@ namespace SM2.Core.Server
                 }
                 await instance.PostWrite();
             }
+            catch (SocketException ex)
+            {
+                this.Dispose();
+            }
+            catch (IOException ex)
+            {
+                this.Dispose();
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error while Trying to Write Packet: 0x{((int)instance.Id).ToString("X")}, CurrentState: {_state}");
-                Console.WriteLine();
-                Console.WriteLine(ex);
-                Console.WriteLine();
+                logger.Warn($"Error while Trying to Write Packet: 0x{((int)instance.Id).ToString("X")}, CurrentState: {State}");
+                logger.Warn("Start Exception:");
+                logger.Warn(ex);
+                logger.Warn("End Exception");
             }
         }
-
-
+        #endregion
+        #region System.IDisposable
         public void Dispose()
         {
+            logger.Fatal("DISPOSED");
+            _streamSemaphore.Dispose();
+            _writeQueue.Clear();
+            _ctx.Server.Connections.Remove(this);
+            _ctx.Player.Kill();
             _stream.Dispose();
             _connection.Dispose();
         }
+        #endregion
     }
 }

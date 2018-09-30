@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
+using NLog;
 using SM2.Core.BaseTypes;
 
 namespace SM2.Core.Server
@@ -15,12 +16,11 @@ namespace SM2.Core.Server
         public RemoteClient Client { get; internal set; }
         public Player Player { get; internal set; }
         public IServiceProvider Provider { get; internal set; }
+        public Logger Logger { get; set; }
         public Object Clone()
         => new Context()
         {
             Server = Server,
-            Client = Client,
-            Player = Player,
             Provider = Provider,
         };
     }

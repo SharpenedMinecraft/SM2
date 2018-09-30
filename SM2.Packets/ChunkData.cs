@@ -29,23 +29,19 @@ namespace SM2.Packets
         [AutoSerialize(4)]
         [NoLength]
         public byte[] Data;
-        //TODO: Implement NBT Entities
-
+        // TODO: Implement NBT Entities
 
         const int CHUNK_HEIGHT = Chunk.ChunkSizeY;
         const int SECTION_HEIGHT = Chunk.SectionHeight;
         const int SECTION_WIDTH = Chunk.ChunkSizeX; // or ChunkSizeZ it doesnt matter
         const int SECTION_DEPTH = Chunk.ChunkSizeZ;
-        static int DEBUG_I = 0;
         public override async Task PreWrite()
         {
-            void Log(string s) => Console.WriteLine(s);
-
             if (!GroundUpContinous)
                 throw new NotImplementedException("Ouuh, pls no");
 
             var chunkPos = new Vector2(ChunkX, ChunkZ);
-            Console.WriteLine($"Writing ChunkData {ChunkX}, {ChunkZ}");
+            logger.Debug($"Writing ChunkData {ChunkX}, {ChunkZ}");
             var uByte = _ctx.Provider.GetService<ITypeAccessor<Byte>>();
             var VarInt = _ctx.Provider.GetService<ITypeAccessor<VarInt>>();
             var Int = _ctx.Provider.GetService<ITypeAccessor<int>>();
@@ -58,17 +54,17 @@ namespace SM2.Packets
                 for (int sectionY = 0; sectionY < SECTION_HEIGHT; sectionY++)
                 {
                     var v = chunk[sectionY];
-                    if (true)
+                    if (v.AnyOther<Air>())
                     {
                         // Mask
                         mask |= (1 << sectionY);
 
                         // Actual Chunk Section Writing
                         WriteChunkSection(v, ref data);
-                        Log($"Wrote {ChunkX}, {sectionY}, {ChunkZ} Section");
+                        // Log($"Wrote {ChunkX}, {sectionY}, {ChunkZ} Section");
                     }
-                    else
-                        Log($"Section {ChunkX}, {sectionY}, {ChunkZ} Was Empty");
+                    else; 
+                        // Log($"Section {ChunkX}, {sectionY}, {ChunkZ} Was Empty");
                 }
 
                 int[] biomes = new int[256];
@@ -86,21 +82,16 @@ namespace SM2.Packets
 
                 VarInt.Write(output, mask);
                 var dataBytes = data.ToArray();
-                Console.WriteLine("Total Data: " + data.Length + "/" + dataBytes.Length);
+                // Console.WriteLine("Total Data: " + data.Length + "/" + dataBytes.Length);
                 data.Dispose();
                 VarInt.Write(output, dataBytes.Length);
                 uByte.WriteArray(output, dataBytes);
 
-                //TODO: Support Block Entities
+                // TODO: Support Block Entities
                 VarInt.Write(output, 0); //We dont Support Block Entities yet
 
                 Data = output.ToArray();
-
-                // 0xFFFF = (VarInt) 255 255 3
             }
-            DEBUG_I++;
-
-            await base.PreWrite();
         }
         public const byte FULL_SIZE_BITS_PER_BLOCK = 14;
         private void WriteChunkSection(ChunkSection section, ref MemoryStream stream)
@@ -136,8 +127,8 @@ namespace SM2.Packets
 
                         var state = section[blockPos];
 
-                        //C# Still limits the Byte Size to uint if this is a uint,
-                        //even after byteshifting into a ulong
+                        // C# Still limits the Byte Size to uint if this is a uint,
+                        // even after byteshifting into a ulong
                         ulong value = (ulong)state.GetState();
                         value &= individualValueMask;
 
@@ -151,7 +142,7 @@ namespace SM2.Packets
                 }
             }
 
-            Console.WriteLine($"Data Array was {DataArray.Length} long");
+            // Console.WriteLine($"Data Array was {DataArray.Length} long");
             VarInt.Write(stream, dataLength);
             ULong.WriteArray(stream, DataArray);
 
@@ -171,11 +162,11 @@ namespace SM2.Packets
                     }
                 }
             }
-            Console.WriteLine($"BlockLight was {BlockLightData.Count} Long");
+            // Console.WriteLine($"BlockLight was {BlockLightData.Count} Long");
             uByte.WriteArray(stream, BlockLightData.ToArray());
 
             List<byte> SkyLightData = new List<byte>();
-            if (/*section.HasSkylight*/ true)
+            if (/* section.HasSkylight */ true)
             { // => current dimension is overworld / 0
                 for (int y = 0; y < SECTION_HEIGHT; y++)
                 {
@@ -193,7 +184,7 @@ namespace SM2.Packets
                     }
                 }
             }
-            Console.WriteLine($"SkyLight was {SkyLightData.Count} Long");
+            // Console.WriteLine($"SkyLight was {SkyLightData.Count} Long");
             uByte.WriteArray(stream, SkyLightData.ToArray());
             #endregion
         }

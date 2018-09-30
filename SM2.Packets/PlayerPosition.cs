@@ -12,7 +12,7 @@ namespace SM2.Packets
     public class PlayerPosition : Packet
     {
         public override ConnectionState RequiredState { get; } = ConnectionState.Play;
-        public override ConnectionSide WritingSide { get; } = ConnectionSide.Server;
+        public override ConnectionSide WritingSide { get; } = ConnectionSide.Client;
         public override VarInt Id { get; } = 0x10;
 
         [AutoSerialize(0)]
@@ -24,12 +24,14 @@ namespace SM2.Packets
         [AutoSerialize(3)]
         public bool OnGround;
 
-        public override Task PostRead()
+        public override async Task PostRead()
         {
-            _ctx.Player.Position = new Vector3D(X, FeetY + 1.62, Z);
-            _ctx.Player.OnGround = OnGround;
+            var newPos = new Vector3D(X, FeetY, Z);
+            Utils.UpdatePosition(_ctx.Client, _ctx.Player, newPos, OnGround);
 
-            return base.PostRead();
+            _ctx.Player.Position = newPos;
+            _ctx.Player.OnGround = OnGround;
+            
         }
 
     }

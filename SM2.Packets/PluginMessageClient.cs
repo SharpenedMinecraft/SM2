@@ -33,6 +33,9 @@ namespace SM2.Packets
                     case "minecraft:brand":
                         var brand = _ctx.Provider.GetService<ITypeAccessor<String>>().Read(data);
                         break;
+                    default:
+                        logger.Info($"Unknown Plugin Channel {ChannelID}");
+                        break;
                 }
 
             await base.PostRead();

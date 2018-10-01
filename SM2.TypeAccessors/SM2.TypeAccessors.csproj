@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SM2.Core.BaseTypes\SM2.Core.BaseTypes.csproj" />
-    <ProjectReference Include="C:\Users\HurricanKai\Source\Repos\AutoSerialize\AutoSerialize\AutoSerialize.csproj" />
   </ItemGroup>
 
 </Project>

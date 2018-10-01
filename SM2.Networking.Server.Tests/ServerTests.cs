@@ -1,4 +1,5 @@
 using Moq;
+using SM2.Core.BaseTypes.Abstractions;
 using System;
 using System.IO;
 using System.Net;

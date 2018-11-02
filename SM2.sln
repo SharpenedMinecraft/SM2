@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27703.2047
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM2.Core.Server", "SM2.Networking.Server\SM2.Core.Server.csproj", "{45AC6D7F-C3B4-4092-A941-7D5894E17EBA}"
 EndProject
@@ -22,8 +22,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM2.WorldGenerators", "SM2.WorldGenerators\SM2.WorldGenerators.csproj", "{DA338BA1-637B-4AB2-9FEB-DDB76CAF70F9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{3AF345A1-D541-432A-B438-DEC22C5B8159}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svelto.ECS", "Svelto.ECS\Svelto.ECS.csproj", "{83FD5DE1-8252-469F-AED9-11EBD2FD5212}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSerialize", "AutoSerialize\AutoSerialize\AutoSerialize.csproj", "{83CD105F-4D13-405C-84AF-31773E716719}"
 EndProject
@@ -69,10 +67,6 @@ Global
 		{DA338BA1-637B-4AB2-9FEB-DDB76CAF70F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA338BA1-637B-4AB2-9FEB-DDB76CAF70F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA338BA1-637B-4AB2-9FEB-DDB76CAF70F9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83FD5DE1-8252-469F-AED9-11EBD2FD5212}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83FD5DE1-8252-469F-AED9-11EBD2FD5212}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83FD5DE1-8252-469F-AED9-11EBD2FD5212}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83FD5DE1-8252-469F-AED9-11EBD2FD5212}.Release|Any CPU.Build.0 = Release|Any CPU
 		{83CD105F-4D13-405C-84AF-31773E716719}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{83CD105F-4D13-405C-84AF-31773E716719}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83CD105F-4D13-405C-84AF-31773E716719}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -82,10 +76,9 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{83FD5DE1-8252-469F-AED9-11EBD2FD5212} = {3AF345A1-D541-432A-B438-DEC22C5B8159}
 		{83CD105F-4D13-405C-84AF-31773E716719} = {3AF345A1-D541-432A-B438-DEC22C5B8159}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {5C77AE11-018C-4CCB-99AA-C7CB10F46DBE}
+		SolutionGuid = {FDCADD66-64A6-44F3-8F6F-BA38856D0F19}
 	EndGlobalSection
 EndGlobal

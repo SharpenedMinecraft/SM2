@@ -47,9 +47,9 @@ namespace SM2.Core.Server
 
         public List<RemoteClient> Connections { get; private set; } = new List<RemoteClient>();
         public Byte MaxPlayers { get; set; } = 200;
-        public Boolean OnlineMode { get; set; } = true;
+        public Boolean OnlineMode { get; set; } = true; 
 
-        public const int ProtocolVersion = 401;
+        public const int ProtocolVersion = 404;
 
         public ServerWrapper(IPEndPoint endpoint) : base(endpoint)
         {

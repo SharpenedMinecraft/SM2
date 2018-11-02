@@ -14,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AutoSerialize\AutoSerialize\AutoSerialize.csproj" />
+    <ProjectReference Include="..\SM2.Core.BaseTypes\SM2.Core.BaseTypes.csproj" />
     <ProjectReference Include="..\SM2.Networking.Server\SM2.Core.Server.csproj" />
   </ItemGroup>
 

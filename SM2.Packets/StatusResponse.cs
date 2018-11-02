@@ -21,6 +21,14 @@ namespace SM2.Packets
 
         public override async Task PreWrite()
         {
+            var sampleData = "";
+            foreach (var connection in _ctx.Server.Connections)
+            {
+                var player = connection.LocalContext.Player;
+                if (player.Profile == null)
+                    continue;
+                sampleData += $"{{\"name\": \"{player.Profile.Name}\", \"id\": \"{player.Profile.Id}\"}}";
+            }
             JSONResponse =
 "{" +
 "\"version\": {" +
@@ -28,9 +36,9 @@ namespace SM2.Packets
 $"\"protocol\": {ServerWrapper.ProtocolVersion}" +
 $"}}," +
 $"\"players\": {{" +
-$"\"max\": 100," +
-$"\"online\": {_ctx.Server.Connections.Where(x => x.State == ConnectionState.Play).Count() - 1}," +
-$"\"sample\":[{/*TODO: Add Sample data*/""}]" +
+$"\"max\": {_ctx.Server.MaxPlayers}," +
+$"\"online\": {_ctx.Server.Connections.Where(x => x.State == ConnectionState.Play).Count()}," +
+$"\"sample\":[{sampleData}]" +
 $"}}," +
 $"\"description\": {{" +
 $"\"text\": \"Powered by SM2\"" +

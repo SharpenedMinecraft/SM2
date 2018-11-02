@@ -17,8 +17,10 @@ namespace SM2.Core.Server
         {
             foreach (var t in packetTypes)
             {
-                var v = new PacketSerializationInfo();
-                v.PacketType = t;
+                var v = new PacketSerializationInfo
+                {
+                    PacketType = t
+                };
                 try
                 {
                     v.ReadAction =

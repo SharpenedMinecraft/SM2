@@ -33,6 +33,7 @@ namespace SM2.Core.Server
         private Logger logger => _ctx.Logger;
         public bool ReadyForSync { get; private set; }
         public int Latency { get; private set; } = -1;
+        public Context LocalContext => _ctx;
 
         public void SyncReady()
             => ReadyForSync = true;
@@ -58,15 +59,12 @@ namespace SM2.Core.Server
 
         private string GetIPAddress()
         {
-            var remoteIpEndPoint = _connection.Socket.RemoteEndPoint as IPEndPoint;
-            var localIpEndPoint = _connection.Socket.LocalEndPoint as IPEndPoint;
-
-            if (remoteIpEndPoint != null)
+            if (_connection.Socket.RemoteEndPoint is IPEndPoint remoteIpEndPoint)
             {
                 return $"{remoteIpEndPoint.Address}:{remoteIpEndPoint.Port}";
             }
 
-            if (localIpEndPoint != null)
+            if (_connection.Socket.LocalEndPoint is IPEndPoint localIpEndPoint)
             {
                 return $"{localIpEndPoint.Address}:{localIpEndPoint.Port}";
             }

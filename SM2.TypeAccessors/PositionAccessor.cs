@@ -19,9 +19,9 @@ namespace SM2.TypeAccessors
         public override Position Read(Stream stream)
         {
             var val = _accessorUInt64.Read(stream);
-            var x = (int)val >> 38;
-            var y = (int)(val >> 26) & 0xFFF;
-            var z = (int)val << 38 >> 38;
+            var x = (int)(val >> 38);
+            var y = (int)((val >> 26) & 0xFFF);
+            var z = (int)((val << 38) >> 38);
             if (x >= Position.MaxX) x -= (int)Math.Pow(2, 26);
             if (y >= Position.MaxY) y -= (int)Math.Pow(2, 12);
             if (z >= Position.MaxZ) z -= (int)Math.Pow(2, 26);

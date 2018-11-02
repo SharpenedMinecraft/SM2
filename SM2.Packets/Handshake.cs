@@ -25,8 +25,8 @@ namespace SM2.Packets
 
         public override async Task PostRead()
         {
-            if (ServerWrapper.ProtocolVersion != ProtocolVersion)
-                throw new ArgumentException();
+            if (ServerWrapper.ProtocolVersion != (int)ProtocolVersion)
+                throw new ArgumentException($"Wrong Protocol Version expected {ServerWrapper.ProtocolVersion}, got {(int)ProtocolVersion}");
             _ctx.Client.SetState(NextState);
 
             await base.PostRead();

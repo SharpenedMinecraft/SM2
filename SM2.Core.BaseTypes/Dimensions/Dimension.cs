@@ -1,4 +1,5 @@
 ﻿using SM2.Core.BaseTypes;
+using SM2.Core.BaseTypes.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -50,16 +51,30 @@ namespace SM2.Dimensions
             _worldGen = LevelType.Generators[_type];
         }
 
-        public Chunk GetChunk(Vector2 position)
+        public Chunk GetChunk(Vector2 chunkPos)
         {
             lock (_chunks)
             {
-                if (!_chunks.TryGetValue(position, out Chunk res))
+                if (!_chunks.TryGetValue(chunkPos, out Chunk res))
                 {
-                    res = _worldGen.Generate(position);
-                    _chunks[position] = res;
+                    res = _worldGen.Generate(chunkPos);
+                    _chunks[chunkPos] = res;
                 }
                 return res;
+            }
+        }
+
+        public Block this[Position pos]
+        {
+            get
+            {
+                var v = pos.WorldToChunk(out var rel);
+                return GetChunk(new Vector2(v.X, v.Z))[v.Y][rel];
+            }
+            set
+            {
+                var v = pos.WorldToChunk(out var rel);
+                GetChunk(new Vector2(v.X, v.Z))[v.Y][rel] = value;
             }
         }
 

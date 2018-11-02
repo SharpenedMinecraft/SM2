@@ -20,7 +20,7 @@ namespace SM2.TypeAccessors
         public virtual T[] ReadArray(Stream stream, int length)
         {
             var v = new T[length];
-            for (int i = 0; i <= length; i++)
+            for (int i = 0; i < length; i++)
                 v[i] = Read(stream);
             return v;
         }

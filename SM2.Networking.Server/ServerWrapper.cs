@@ -55,17 +55,17 @@ namespace SM2.Core.Server
         {
             logger.Info("Loading...");
             ExpressionBuilder.ArrayHeadNumericType = typeof(VarInt);
-            var PacketTypes = Assembly
+            var packetTypes = Assembly
                 .LoadFile(Path.GetFullPath("./SM2.Packets.dll"))
                 .GetTypes()
                 .Where(type => type.IsSubclassOf(typeof(Packet))).ToArray();
-            logger.Info($"Loaded {PacketTypes.Length} Packets");
+            logger.Info($"Loaded {packetTypes.Length} Packets");
             IServiceProvider v = new ServiceCollection()
             .RegisterTypeAccessors()
             .AddSingleton<IPacketSerializer, PacketSerializer>((provider) =>
             {
                 var instance = new PacketSerializer();
-                instance.Build(PacketTypes, provider);
+                instance.Build(packetTypes, provider);
                 logger.Debug("Builded Packet Serializer");
                 return instance;
             })
@@ -98,19 +98,16 @@ namespace SM2.Core.Server
         {
             while (Active)
             {
-                while (Pending())
-                {
-                    var newConnection = await AcceptTcpClientAsync();
-                    CreateClient(new MinecraftTcpConnection(newConnection));
-                    logger.Info("Accepted new Client");
-                }
-                await Task.Delay(100);
+                var newConnection = await AcceptTcpClientAsync();
+                CreateClient(new MinecraftTcpConnection(newConnection));
+                logger.Info("Accepted new Client");
             }
             logger.Fatal("Ended");
         }
 
         private void CreateClient(IMinecraftConnection connection)
         {
+            // The Constructor of RemoteClient is doing the rest.
             new RemoteClient(connection, (Context)_ctx.Clone());
         }
 

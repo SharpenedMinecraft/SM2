@@ -39,11 +39,13 @@ namespace SM2.Core.Server
             .AddSingleton<ITypeAccessor<Guid>, GUIDAccessor>();
     }
 
-    public class ServerWrapper : TcpListener
+    public class ServerWrapper
     {
+        private readonly TcpListener _listener;
         private readonly Logger logger = LogManager.GetLogger("SERVER-MAIN");
         private readonly Context _ctx;
         private Task _listeningTask;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public List<RemoteClient> Connections { get; private set; } = new List<RemoteClient>();
         public Byte MaxPlayers { get; set; } = 200;
@@ -51,9 +53,11 @@ namespace SM2.Core.Server
 
         public const int ProtocolVersion = 404;
 
-        public ServerWrapper(IPEndPoint endpoint) : base(endpoint)
+        public ServerWrapper(IPEndPoint endpoint)
         {
             logger.Info("Loading...");
+            _listener = new TcpListener(endpoint);
+            logger.Info("Created Listener");
             ExpressionBuilder.ArrayHeadNumericType = typeof(VarInt);
             var packetTypes = Assembly
                 .LoadFile(Path.GetFullPath("./SM2.Packets.dll"))
@@ -85,35 +89,35 @@ namespace SM2.Core.Server
             logger.Info("We are all set!");
         }
 
-        public new void Start()
+        public void Start()
         {
-            base.Start();
+            _listener.Start();
             _listeningTask = Listening();
             _listeningTask.ConfigureAwait(false);
             logger.Info("Started");
-            logger.Info($"Clients can now Connect to {((IPEndPoint)LocalEndpoint).Address.ToString()}:{((IPEndPoint)LocalEndpoint).Port}");
+            logger.Info($"Clients can now Connect to {((IPEndPoint)_listener.LocalEndpoint).Address.ToString()}:{((IPEndPoint)_listener.LocalEndpoint).Port}");
         }
 
         private async Task Listening()
         {
-            while (Active)
+            while (!_cts.IsCancellationRequested)
             {
-                var newConnection = await AcceptTcpClientAsync();
-                CreateClient(new MinecraftTcpConnection(newConnection));
-                logger.Info("Accepted new Client");
+                var newConnection = await Task.Factory.FromAsync(_listener.BeginAcceptTcpClient, _listener.EndAcceptTcpClient, null);
+                CreateClient(newConnection);
             }
-            logger.Fatal("Ended");
+            logger.Fatal("Ended Listening");
         }
 
-        private void CreateClient(IMinecraftConnection connection)
+        private void CreateClient(TcpClient newConnection)
         {
-            // The Constructor of RemoteClient is doing the rest.
-            new RemoteClient(connection, (Context)_ctx.Clone());
+            var newRemote = new RemoteClient(new MinecraftTcpConnection(newConnection), (Context)_ctx.Clone());
+            Connections.Add(newRemote);
+            logger.Info("Accepted new Client");
         }
 
         public async Task RunToComplete()
         {
-            while (Active)
+            while (!_cts.IsCancellationRequested)
                 await Task.Delay(1000);
         }
     }

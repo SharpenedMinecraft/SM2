@@ -54,7 +54,6 @@ namespace SM2.Core.Server
             _ctx.Logger = LogManager.GetLogger($"{GetIPAddress()}");
             _readTask = Task.Factory.StartNew(() => ReadLoop().ConfigureAwait(false).GetAwaiter().GetResult());
             _writeTask = Task.Factory.StartNew(() => WriteLoop().ConfigureAwait(false).GetAwaiter().GetResult());
-            _ctx.Server.Connections.Add(this);
         }
 
         private string GetIPAddress()

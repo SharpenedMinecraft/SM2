@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM2.Packets", "SM2.Packets\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM2.Core.BaseTypes", "SM2.Core.BaseTypes\SM2.Core.BaseTypes.csproj", "{9FEEB4B5-076A-4E85-A513-BB88E8C2F12C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM2.Commands.Transpiler", "SM2.Commands.Transpiler\SM2.Commands.Transpiler.csproj", "{798F2623-0A4D-4CFC-9C11-93DC76AB5464}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM2.TypeAccessors", "SM2.TypeAccessors\SM2.TypeAccessors.csproj", "{E73C5264-FD85-4880-A5F7-075CFD3C56BF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SM2.CodeGenerator", "SM2.CodeGenerator\SM2.CodeGenerator.csproj", "{8240A3C2-EE6B-4A64-B513-B39EED6C2D4E}"
@@ -47,10 +45,6 @@ Global
 		{9FEEB4B5-076A-4E85-A513-BB88E8C2F12C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FEEB4B5-076A-4E85-A513-BB88E8C2F12C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FEEB4B5-076A-4E85-A513-BB88E8C2F12C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{798F2623-0A4D-4CFC-9C11-93DC76AB5464}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{798F2623-0A4D-4CFC-9C11-93DC76AB5464}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{798F2623-0A4D-4CFC-9C11-93DC76AB5464}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{798F2623-0A4D-4CFC-9C11-93DC76AB5464}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E73C5264-FD85-4880-A5F7-075CFD3C56BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E73C5264-FD85-4880-A5F7-075CFD3C56BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E73C5264-FD85-4880-A5F7-075CFD3C56BF}.Release|Any CPU.ActiveCfg = Release|Any CPU

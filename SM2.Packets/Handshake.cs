@@ -27,7 +27,7 @@ namespace SM2.Packets
         {
             if (ServerWrapper.ProtocolVersion != (int)ProtocolVersion)
                 throw new ArgumentException($"Wrong Protocol Version expected {ServerWrapper.ProtocolVersion}, got {(int)ProtocolVersion}");
-            _ctx.Client.SetState(NextState);
+            _ctx.Client.State = NextState;
 
             await base.PostRead();
         }

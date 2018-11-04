@@ -14,6 +14,8 @@ using SM2.Core.BaseTypes.Abstractions;
 using AutoSerialize;
 using NLog;
 using System.Net;
+using System.IO.Pipelines;
+using System.Buffers;
 
 namespace SM2.Core.Server
 {
@@ -21,59 +23,54 @@ namespace SM2.Core.Server
     {
         private static int NextConnectionId = 0;
 
+        public ConnectionState State { get; set; } = ConnectionState.Handshake;
+        public bool ReadyForSync { get; private set; }
+        public int Latency { get; private set; } = -1;
+        public Context LocalContext => _ctx;
+
         private readonly int _connectionId = ++NextConnectionId;
         private readonly NetworkStream _stream;
         private readonly IMinecraftConnection _connection;
         private readonly Context _ctx;
         private readonly SemaphoreSlim _streamSemaphore = new SemaphoreSlim(1, 1);
-        private readonly Task _readTask;
+        private readonly Task _readStreamTask;
+        private readonly Task _readProcessingTask;
+        private readonly Pipe _readPipe;
         private readonly Task _writeTask;
+        private readonly bool _disposed;
         private long _lastKeepAliveId;
         private DateTime _lastKeepAliveTime;
-        private Logger logger => _ctx.Logger;
-        public bool ReadyForSync { get; private set; }
-        public int Latency { get; private set; } = -1;
-        public Context LocalContext => _ctx;
-
-        public void SyncReady()
-            => ReadyForSync = true;
-
+        private Logger _logger => _ctx.Logger;
         private Queue<WriteInfo> _writeQueue = new Queue<WriteInfo>();
-        public ConnectionState State { get; private set; } = ConnectionState.Handshake;
-
-        public void SetState(ConnectionState newState)
-            => State = newState;
 
         public RemoteClient(IMinecraftConnection connection, Context ctx)
         {
+            // TODO: Run everything with the _ctx CancellationToken.
+            // For this, create one per client, and combine it with the Server Token.
             _connection = connection;
             _stream = _connection.GetStream();
             _ctx = ctx;
             _ctx.Client = this;
             _ctx.Player = new Player(_ctx);
             _ctx.Logger = LogManager.GetLogger($"{GetIPAddress()}");
-            _readTask = Task.Factory.StartNew(() => ReadLoop().ConfigureAwait(false).GetAwaiter().GetResult());
-            _writeTask = Task.Factory.StartNew(() => WriteLoop().ConfigureAwait(false).GetAwaiter().GetResult());
+            _writeTask = WriteLoop();
+
+            _readPipe = new Pipe(new PipeOptions());
+            _readStreamTask = ReadFromStream(_readPipe.Writer);
+            _readProcessingTask = ProcessPackets(_readPipe.Reader);
         }
 
-        private string GetIPAddress()
+        /// <summary>
+        /// Indicate that this RemoteClient is Ready for Syncronization Packets.
+        /// </summary>
+        public void SyncReady()
         {
-            if (_connection.Socket.RemoteEndPoint is IPEndPoint remoteIpEndPoint)
-            {
-                return $"{remoteIpEndPoint.Address}:{remoteIpEndPoint.Port}";
-            }
-
-            if (_connection.Socket.LocalEndPoint is IPEndPoint localIpEndPoint)
-            {
-                return $"{localIpEndPoint.Address}:{localIpEndPoint.Port}";
-            }
-
-            return "Unknown";
+            ReadyForSync = true;
         }
 
         public void CloseConnection(string message = "")
         {
-            logger.Fatal($"CONNECTION CLOSED. (Reason: {message})");
+            _logger.Fatal($"CONNECTION CLOSED. (Reason: {message})");
             Dispose();
         }
 
@@ -93,13 +90,13 @@ namespace SM2.Core.Server
         {
             _lastKeepAliveId = id;
             _lastKeepAliveTime = DateTime.UtcNow;
-            logger.Debug($"Keepalive Send (id: {id})");
+            _logger.Debug($"Keepalive Send (id: {id})");
         }
-        public void ReceivedKeepalive<SendT>(long id) where SendT : Packet, new()
+        public void ReceivedKeepalive<TSend>(long id) where TSend : Packet, new()
         {
             try
             {
-                logger.Debug($"Keepalive Received (id: {id})");
+                _logger.Debug($"Keepalive Received (id: {id})");
                 if (_lastKeepAliveId != id)
                     throw new Exception("Wrong Id");
                 var timeout = _lastKeepAliveTime + TimeSpan.FromSeconds(30);
@@ -116,7 +113,7 @@ namespace SM2.Core.Server
                             break;
                         await Task.Delay(1000); // this is ok ;d
                     }
-                    Write((SendT)Activator.CreateInstance(typeof(SendT)));
+                    Write((TSend)Activator.CreateInstance(typeof(TSend)));
                 });
             }
             catch (Exception ex)
@@ -126,6 +123,21 @@ namespace SM2.Core.Server
         }
         #endregion
 
+
+        private string GetIPAddress()
+        {
+            if (_connection.Socket.RemoteEndPoint is IPEndPoint remoteIpEndPoint)
+            {
+                return $"{remoteIpEndPoint.Address}:{remoteIpEndPoint.Port}";
+            }
+
+            if (_connection.Socket.LocalEndPoint is IPEndPoint localIpEndPoint)
+            {
+                return $"{localIpEndPoint.Address}:{localIpEndPoint.Port}";
+            }
+
+            return "Unknown";
+        }
         #region Loops
         private async Task WriteLoop()
         {
@@ -138,7 +150,6 @@ namespace SM2.Core.Server
                 }
             }
         }
-
         private async Task ReadLoop()
         {
             while (_stream?.CanRead ?? false)
@@ -151,13 +162,91 @@ namespace SM2.Core.Server
                     }
                     catch (Exception ex)
                     {
-                        logger.Error(ex);
+                        _logger.Error(ex);
                     }
                 }
                 else
                     await Task.Delay(10);
             }
             this.Dispose();
+        }
+        private async Task ReadFromStream(PipeWriter writer)
+        {
+            // TODO: Finetune this Number.
+            const int minimumBufferSize = 128;
+
+            while (true)
+            {
+                // Allocate at least 512 bytes from the PipeWriter
+                Memory<byte> memory = writer.GetMemory(minimumBufferSize);
+                try
+                {
+                    // TODO: Add CTS
+                    int bytesRead = await _connection.Socket.ReceiveAsync(memory, SocketFlags.None);
+                    if (bytesRead == 0)
+                    {
+                        break;
+                    }
+                    // Tell the PipeWriter how much was read from the Socket
+                    writer.Advance(bytesRead);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Fatal(ex);
+                    break;
+                }
+
+                // Make the data available to the PipeReader
+                FlushResult result = await writer.FlushAsync();
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+
+            // Tell the PipeReader that there's no more data coming
+            writer.Complete();
+            this.Dispose();
+        }
+        private async Task ProcessPackets(PipeReader reader)
+        {
+            while (true)
+            {
+                // TODO: Use CTS
+                ReadResult result = await reader.ReadAsync();
+
+                ReadOnlySequence<byte> buffer = result.Buffer;
+                SequencePosition? position = null;
+
+                do
+                {
+                    // Look for a EOL in the buffer
+                    position = buffer.PositionOf((byte)'\n');
+
+                    if (position != null)
+                    {
+                        // Process the line
+                        ProcessLine(buffer.Slice(0, position.Value));
+
+                        // Skip the line + the \n character (basically position)
+                        buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                    }
+                }
+                while (position != null);
+
+                // Tell the PipeReader how much of the buffer we have consumed
+                reader.AdvanceTo(buffer.Start, buffer.End);
+
+                // Stop reading if there's no more data coming
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+
+            // Mark the PipeReader as complete
+            reader.Complete();
         }
         #endregion
         #region Read
@@ -176,7 +265,6 @@ namespace SM2.Core.Server
                 semaphoreReleased = true;
                 using (var stream = new MemoryStream(buff))
                 {
-                    // now we are alone again
                     int id = varIntAccessor.Read(stream);
                     try
                     {
@@ -187,7 +275,7 @@ namespace SM2.Core.Server
                         }
                         catch (InvalidOperationException ex)
                         {
-                            logger.Warn($"Coudnt find Packet 0x{id.ToString("X")}");
+                            _logger.Warn($"Coudnt find Packet 0x{id.ToString("X")}");
                             return;
                         }
                         var p = (Packet)Activator.CreateInstance(info.PacketType);
@@ -206,16 +294,16 @@ namespace SM2.Core.Server
                     }
                     catch (Exception ex)
                     {
-                        logger.Warn($"Error while Trying to Read Packet: 0x{id.ToString("X")}, CurrentState: {State}");
-                        logger.Warn("Start Exception:");
-                        logger.Warn(ex);
-                        logger.Warn("End Exception");
+                        _logger.Warn($"Error while Trying to Read Packet: 0x{id.ToString("X")}, CurrentState: {State}");
+                        _logger.Warn("Start Exception:");
+                        _logger.Warn(ex);
+                        _logger.Warn("End Exception");
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.Error(ex);
+                _logger.Error(ex);
             }
             finally
             {
@@ -262,15 +350,6 @@ namespace SM2.Core.Server
                         {
                             await _streamSemaphore.WaitAsync();
                             lengthStream.Position = 0;
-                            /*string s = "";
-                            while (true)
-                            {
-                                var v = lengthStream.ReadByte();
-                                if (v == -1)
-                                    break;
-                                s += (byte)v;
-                                s += "\n";
-                            }*/
                             await lengthStream.CopyToAsync(_stream);
                         }
                         finally
@@ -291,17 +370,21 @@ namespace SM2.Core.Server
             }
             catch (Exception ex)
             {
-                logger.Warn($"Error while Trying to Write Packet: 0x{((int)instance.Id).ToString("X")}, CurrentState: {State}");
-                logger.Warn("Start Exception:");
-                logger.Warn(ex);
-                logger.Warn("End Exception");
+                _logger.Warn($"Error while Trying to Write Packet: 0x{((int)instance.Id).ToString("X")}, CurrentState: {State}");
+                _logger.Warn("Start Exception:");
+                _logger.Warn(ex);
+                _logger.Warn("End Exception");
             }
         }
         #endregion
         #region System.IDisposable
         public void Dispose()
         {
-            logger.Fatal("DISPOSED");
+            if (_disposed)
+                return;
+            _disposed = true;
+            _logger.Fatal("DISPOSED");
+            _readPipe.Reset();
             _streamSemaphore.Dispose();
             _writeQueue.Clear();
             _ctx.Server.Connections.Remove(this);

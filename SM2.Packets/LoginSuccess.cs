@@ -24,7 +24,7 @@ namespace SM2.Packets
 
         public override async Task PostWrite()
         {
-            _ctx.Client.SetState(ConnectionState.Play);
+            _ctx.Client.State = ConnectionState.Play;
             _ctx.Client.Write(new JoinGame()
             {
                 //TODO: Propper World Stuff

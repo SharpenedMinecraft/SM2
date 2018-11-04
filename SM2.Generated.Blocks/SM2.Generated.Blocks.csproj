@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>SM2.Blocks</AssemblyName>
     <RootNamespace>SM2.Blocks</RootNamespace>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

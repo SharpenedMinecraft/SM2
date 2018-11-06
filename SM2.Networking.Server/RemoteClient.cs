@@ -16,6 +16,8 @@ using NLog;
 using System.Net;
 using System.IO.Pipelines;
 using System.Buffers;
+using System.Runtime.InteropServices;
+using System.Buffers.Binary;
 
 namespace SM2.Core.Server
 {
@@ -37,7 +39,8 @@ namespace SM2.Core.Server
         private readonly Task _readProcessingTask;
         private readonly Pipe _readPipe;
         private readonly Task _writeTask;
-        private readonly bool _disposed;
+        private readonly CancellationTokenSource _cts;
+        private bool _disposed;
         private long _lastKeepAliveId;
         private DateTime _lastKeepAliveTime;
         private Logger _logger => _ctx.Logger;
@@ -53,11 +56,13 @@ namespace SM2.Core.Server
             _ctx.Client = this;
             _ctx.Player = new Player(_ctx);
             _ctx.Logger = LogManager.GetLogger($"{GetIPAddress()}");
-            _writeTask = WriteLoop();
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(_ctx.CancellationToken);
+            _ctx.CancellationToken = _cts.Token;
+            _writeTask = Task.Run(() => WriteLoop(), _ctx.CancellationToken);
 
             _readPipe = new Pipe(new PipeOptions());
-            _readStreamTask = ReadFromStream(_readPipe.Writer);
-            _readProcessingTask = ProcessPackets(_readPipe.Reader);
+            _readStreamTask = Task.Run(() => ReadFromStream(_readPipe.Writer), _ctx.CancellationToken);
+            _readProcessingTask = Task.Run(() => ProcessPackets(_readPipe.Reader), _ctx.CancellationToken);
         }
 
         /// <summary>
@@ -114,7 +119,7 @@ namespace SM2.Core.Server
                         await Task.Delay(1000); // this is ok ;d
                     }
                     Write((TSend)Activator.CreateInstance(typeof(TSend)));
-                });
+                }, _ctx.CancellationToken);
             }
             catch (Exception ex)
             {
@@ -150,39 +155,21 @@ namespace SM2.Core.Server
                 }
             }
         }
-        private async Task ReadLoop()
-        {
-            while (_stream?.CanRead ?? false)
-            {
-                if (_stream.DataAvailable)
-                {
-                    try
-                    {
-                        await ReadOnePacket();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex);
-                    }
-                }
-                else
-                    await Task.Delay(10);
-            }
-            this.Dispose();
-        }
+        #endregion
+        #region Read
         private async Task ReadFromStream(PipeWriter writer)
         {
             // TODO: Finetune this Number.
             const int minimumBufferSize = 128;
 
-            while (true)
+            while (!_ctx.CancellationToken.IsCancellationRequested)
             {
                 // Allocate at least 512 bytes from the PipeWriter
                 Memory<byte> memory = writer.GetMemory(minimumBufferSize);
                 try
                 {
                     // TODO: Add CTS
-                    int bytesRead = await _connection.Socket.ReceiveAsync(memory, SocketFlags.None);
+                    int bytesRead = await _connection.Socket.ReceiveAsync(memory, SocketFlags.None, _ctx.CancellationToken);
                     if (bytesRead == 0)
                     {
                         break;
@@ -197,7 +184,7 @@ namespace SM2.Core.Server
                 }
 
                 // Make the data available to the PipeReader
-                FlushResult result = await writer.FlushAsync();
+                FlushResult result = await writer.FlushAsync(_ctx.CancellationToken);
 
                 if (result.IsCompleted)
                 {
@@ -214,23 +201,30 @@ namespace SM2.Core.Server
             while (true)
             {
                 // TODO: Use CTS
-                ReadResult result = await reader.ReadAsync();
+                ReadResult result = await reader.ReadAsync(_ctx.CancellationToken);
 
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 SequencePosition? position = null;
-
                 do
                 {
-                    // Look for a EOL in the buffer
-                    position = buffer.PositionOf((byte)'\n');
-
-                    if (position != null)
+                    // TODO: This copies the entire Data once, which is inefficent
+                    using (var stream = new MemoryStream(buffer.ToArray()))
                     {
-                        // Process the line
-                        ProcessLine(buffer.Slice(0, position.Value));
+                        // Get Packet Size
+                        var varIntAccessor = _ctx.Provider.GetService<ITypeAccessor<VarInt>>();
+                        var sliceLength = varIntAccessor.Read(stream);
+                        var readBytes = stream.Position;
+                        position = buffer.GetPosition(sliceLength);
 
-                        // Skip the line + the \n character (basically position)
-                        buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                        if (position != null)
+                        {
+                            // Process this Packet
+                            // TODO: Skip the Length?!
+                            await ProcessPacket(buffer.Slice(readBytes, position.Value));
+
+                            // Skip this Packet
+                            buffer = buffer.Slice(position.Value);
+                        }
                     }
                 }
                 while (position != null);
@@ -240,30 +234,23 @@ namespace SM2.Core.Server
 
                 // Stop reading if there's no more data coming
                 if (result.IsCompleted)
-                {
                     break;
-                }
+                if (_ctx.CancellationToken.IsCancellationRequested)
+                    break;
             }
 
             // Mark the PipeReader as complete
             reader.Complete();
         }
-        #endregion
-        #region Read
-        private async Task ReadOnePacket()
+
+        private async Task ProcessPacket(ReadOnlySequence<Byte> data)
         {
             var serializer = _ctx.Provider.GetService<IPacketSerializer>();
             var varIntAccessor = _ctx.Provider.GetService<ITypeAccessor<VarInt>>();
-            bool semaphoreReleased = false;
-            try
+            var array = data.ToArray();
+            using (var stream = new MemoryStream(array))
             {
-                await _streamSemaphore.WaitAsync();
-                var length = varIntAccessor.Read(_stream);
-                var buff = new Byte[length];
-                _stream.Read(buff, 0, length);
-                _streamSemaphore.Release();
-                semaphoreReleased = true;
-                using (var stream = new MemoryStream(buff))
+                try
                 {
                     int id = varIntAccessor.Read(stream);
                     try
@@ -300,15 +287,10 @@ namespace SM2.Core.Server
                         _logger.Warn("End Exception");
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex);
-            }
-            finally
-            {
-                if (!semaphoreReleased)
-                    _streamSemaphore.Release();
+                catch (Exception ex)
+                {
+                    _logger.Error(ex);
+                }
             }
         }
         #endregion
@@ -323,8 +305,8 @@ namespace SM2.Core.Server
         {
             _writeQueue.Enqueue(new WriteInfo()
             {
-               instance = packet,
-               t = typeof(T)
+                instance = packet,
+                t = typeof(T)
             });
         }
 
@@ -345,12 +327,12 @@ namespace SM2.Core.Server
                     {
                         varIntAccessor.Write(lengthStream, (int)stream.Position);
                         stream.Position = 0;
-                        await stream.CopyToAsync(lengthStream);
+                        await stream.CopyToAsync(lengthStream, _ctx.CancellationToken);
                         try
                         {
-                            await _streamSemaphore.WaitAsync();
+                            await _streamSemaphore.WaitAsync(_ctx.CancellationToken);
                             lengthStream.Position = 0;
-                            await lengthStream.CopyToAsync(_stream);
+                            await lengthStream.CopyToAsync(_stream, _ctx.CancellationToken);
                         }
                         finally
                         {
@@ -389,8 +371,10 @@ namespace SM2.Core.Server
             _writeQueue.Clear();
             _ctx.Server.Connections.Remove(this);
             _ctx.Player.Kill();
+            _stream.Flush();
             _stream.Dispose();
             _connection.Dispose();
+            _cts.Cancel();
         }
         #endregion
     }

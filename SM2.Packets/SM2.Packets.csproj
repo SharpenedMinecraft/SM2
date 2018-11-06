@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)SM2.Networking.Server\bin\Debug\netcoreapp2.0\$(TargetFileName)&quot;" />
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)SM2.Networking.Server\bin\Debug\netcoreapp2.1\$(TargetFileName)&quot;" />
   </Target>
 
 </Project>

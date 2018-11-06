@@ -84,6 +84,7 @@ namespace SM2.Core.Server
             {
                 Server = this,
                 Provider = v,
+                CancellationToken = _cts.Token
             };
             logger.Info("Created Context");
             logger.Info("We are all set!");
@@ -93,15 +94,16 @@ namespace SM2.Core.Server
         {
             _listener.Start();
             _listeningTask = Listening();
-            _listeningTask.ConfigureAwait(false);
             logger.Info("Started");
             logger.Info($"Clients can now Connect to {((IPEndPoint)_listener.LocalEndpoint).Address.ToString()}:{((IPEndPoint)_listener.LocalEndpoint).Port}");
         }
 
         private async Task Listening()
         {
+            logger.Debug("Started Listening...");
             while (!_cts.IsCancellationRequested)
             {
+                logger.Debug("Waiting for Connection...");
                 var newConnection = await Task.Factory.FromAsync(_listener.BeginAcceptTcpClient, _listener.EndAcceptTcpClient, null);
                 CreateClient(newConnection);
             }
@@ -110,6 +112,7 @@ namespace SM2.Core.Server
 
         private void CreateClient(TcpClient newConnection)
         {
+            logger.Debug("Accepting Client...");
             var newRemote = new RemoteClient(new MinecraftTcpConnection(newConnection), (Context)_ctx.Clone());
             Connections.Add(newRemote);
             logger.Info("Accepted new Client");

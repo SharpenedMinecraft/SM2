@@ -4,6 +4,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +27,10 @@ namespace Server
         private readonly Task _readTask;
         private readonly Task _processTask;
         private readonly ConcurrentQueue<PacketInfo> _processQueue;
-        private readonly Semaphore _streamSemaphore;
+        private readonly SemaphoreSlim _readSemaphore;
+        private readonly SemaphoreSlim _writeSemaphore;
+        private readonly IObservable<PacketInfo> _readObservable;
+        private readonly IObserver<PacketInfo> _writeObserver;
 
         private ConnectionState _state;
 
@@ -35,7 +39,8 @@ namespace Server
             _client = client;
             _cts = CancellationTokenSource.CreateLinkedTokenSource(token);
             _processQueue = new ConcurrentQueue<PacketInfo>();
-            _streamSemaphore = new Semaphore(1, 1);
+            _readSemaphore = new SemaphoreSlim(1, 1);
+            _writeSemaphore = new SemaphoreSlim(1, 1);
             _readTask = Task.Run(Read);
             _processTask = Task.Run(Process);
         }
@@ -52,7 +57,7 @@ namespace Server
                     int length;
                     try
                     {
-                        _streamSemaphore.WaitOne();
+                        await _readSemaphore.WaitAsync();
                         try
                         {
                             length = NetworkUtils.ReadVarInt(stream);
@@ -62,7 +67,7 @@ namespace Server
                         }
                         finally
                         {
-                            _streamSemaphore.Release();
+                            _readSemaphore.Release();
                         }
                         using (var dataStream = new MemoryStream(buffer.ToArray()))
                         {
@@ -94,7 +99,7 @@ namespace Server
 
         private void Write(Action<Stream> action)
         {
-            _streamSemaphore.WaitOne();
+            _writeSemaphore.Wait();
             try
             {
                 using (var stream = new MemoryStream())
@@ -117,7 +122,7 @@ namespace Server
             }
             finally
             {
-                _streamSemaphore.Release();
+                _writeSemaphore.Release();
             }
         }
 
@@ -211,6 +216,8 @@ $"}}");
         {
             _cts.Dispose();
             _client.Dispose();
+            _readSemaphore.Dispose();
+            _writeSemaphore.Dispose();
         }
 
         private struct PacketInfo

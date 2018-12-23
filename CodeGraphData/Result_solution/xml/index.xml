@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.8.6">
+  <compound refid="class_base_1_1_block" kind="class"><name>Base::Block</name>
+  </compound>
+  <compound refid="class_base_1_1_chunk" kind="class"><name>Base::Chunk</name>
+    <member refid="class_base_1_1_chunk_1a0030cc695fc523898563cb882f67af84" kind="property"><name>Sections</name></member>
+  </compound>
+  <compound refid="class_base_1_1_chunk_section" kind="class"><name>Base::ChunkSection</name>
+    <member refid="class_base_1_1_chunk_section_1a9b2f89eb5c432f21943e5402b53ae5a8" kind="property"><name>Blocks</name></member>
+  </compound>
+  <compound refid="class_base_1_1_dimension" kind="class"><name>Base::Dimension</name>
+    <member refid="class_base_1_1_dimension_1ae54ffdcbcb5bf7696b74de3914eac8ab" kind="property"><name>Entities</name></member>
+    <member refid="class_base_1_1_dimension_1a6ea0a21db2c4e8710d0a23ffd89d4af0" kind="property"><name>Chunks</name></member>
+  </compound>
+  <compound refid="interface_base_1_1_i_entity" kind="interface"><name>Base::IEntity</name>
+  </compound>
+  <compound refid="class_base_1_1_world" kind="class"><name>Base::World</name>
+    <member refid="class_base_1_1_world_1ae8df818344f507e3bab234598d28d256" kind="property"><name>Dimensions</name></member>
+    <member refid="class_base_1_1_world_1a9a2050b1b21d19889aef352afb7eac89" kind="variable"><name>Overworld</name></member>
+    <member refid="class_base_1_1_world_1aea5e89499ec0d907504a24abecbd13ad" kind="variable"><name>End</name></member>
+    <member refid="class_base_1_1_world_1a1d10d5685dd1b20dcfcb73e18961817e" kind="variable"><name>Nether</name></member>
+  </compound>
+  <compound refid="namespace_base" kind="namespace"><name>Base</name>
+  </compound>
+  <compound refid="namespace_system" kind="namespace"><name>System</name>
+  </compound>
+  <compound refid="namespace_system_1_1_collections_1_1_generic" kind="namespace"><name>System::Collections::Generic</name>
+  </compound>
+  <compound refid="namespace_system_1_1_text" kind="namespace"><name>System::Text</name>
+  </compound>
+  <compound refid="_block_8cs" kind="file"><name>Block.cs</name>
+  </compound>
+  <compound refid="_chunk_8cs" kind="file"><name>Chunk.cs</name>
+  </compound>
+  <compound refid="_chunk_section_8cs" kind="file"><name>ChunkSection.cs</name>
+  </compound>
+  <compound refid="_dimension_8cs" kind="file"><name>Dimension.cs</name>
+  </compound>
+  <compound refid="_i_entity_8cs" kind="file"><name>IEntity.cs</name>
+  </compound>
+  <compound refid="_world_8cs" kind="file"><name>World.cs</name>
+  </compound>
+  <compound refid="dir_2cb9733225d9773678582f306b3396bc" kind="dir"><name>Z:/Repos/SM2/Base</name>
+  </compound>
+  <compound refid="dir_4579aad7660f7664f5ba65b0262a6da2" kind="dir"><name>Z:/Repos</name>
+  </compound>
+  <compound refid="dir_e4e329299fa47752183cdbc1ee2680da" kind="dir"><name>Z:/Repos/SM2</name>
+  </compound>
+  <compound refid="dir_0a31c64d9f1f2c74acde1e4feea70c37" kind="dir"><name>Z:</name>
+  </compound>
+</doxygenindex>

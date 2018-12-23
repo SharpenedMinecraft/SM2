@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.6">
+  <compounddef id="class_base_1_1_dimension" kind="class" prot="public">
+    <compoundname>Base::Dimension</compoundname>
+      <sectiondef kind="property">
+      <memberdef kind="property" id="class_base_1_1_dimension_1ae54ffdcbcb5bf7696b74de3914eac8ab" prot="public" static="no" readable="no" writable="no" gettable="yes" settable="no">
+        <type><ref refid="interface_base_1_1_i_entity" kindref="compound">IEntity</ref>[]</type>
+        <definition>IEntity [] Base.Dimension.Entities</definition>
+        <argsstring></argsstring>
+        <name>Entities</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Z:/Repos/SM2/Base/Dimension.cs" line="7" column="1" bodyfile="Z:/Repos/SM2/Base/Dimension.cs" bodystart="7" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="property" id="class_base_1_1_dimension_1a6ea0a21db2c4e8710d0a23ffd89d4af0" prot="public" static="no" readable="no" writable="no" gettable="yes" settable="no">
+        <type><ref refid="class_base_1_1_chunk" kindref="compound">Chunk</ref>[]</type>
+        <definition>Chunk [] Base.Dimension.Chunks</definition>
+        <argsstring></argsstring>
+        <name>Chunks</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="Z:/Repos/SM2/Base/Dimension.cs" line="8" column="1" bodyfile="Z:/Repos/SM2/Base/Dimension.cs" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="Z:/Repos/SM2/Base/Dimension.cs" line="6" column="1" bodyfile="Z:/Repos/SM2/Base/Dimension.cs" bodystart="5" bodyend="9"/>
+    <listofallmembers>
+      <member refid="class_base_1_1_dimension_1a6ea0a21db2c4e8710d0a23ffd89d4af0" prot="public" virt="non-virtual"><scope>Base::Dimension</scope><name>Chunks</name></member>
+      <member refid="class_base_1_1_dimension_1ae54ffdcbcb5bf7696b74de3914eac8ab" prot="public" virt="non-virtual"><scope>Base::Dimension</scope><name>Entities</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

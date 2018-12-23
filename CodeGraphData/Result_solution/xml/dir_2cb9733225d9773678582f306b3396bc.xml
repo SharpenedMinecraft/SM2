@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.6">
+  <compounddef id="dir_2cb9733225d9773678582f306b3396bc" kind="dir">
+    <compoundname>Z:/Repos/SM2/Base</compoundname>
+    <innerfile refid="_block_8cs">Block.cs</innerfile>
+    <innerfile refid="_chunk_8cs">Chunk.cs</innerfile>
+    <innerfile refid="_chunk_section_8cs">ChunkSection.cs</innerfile>
+    <innerfile refid="_dimension_8cs">Dimension.cs</innerfile>
+    <innerfile refid="_i_entity_8cs">IEntity.cs</innerfile>
+    <innerfile refid="_world_8cs">World.cs</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="Z:/Repos/SM2/Base/"/>
+  </compounddef>
+</doxygen>

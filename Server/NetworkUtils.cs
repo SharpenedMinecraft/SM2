@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Server
 {
-    internal static class NetworkUtils
+    public static class NetworkUtils
     {
         public static void WriteVarInt(Stream stream, int val)
         {
@@ -45,6 +45,28 @@ namespace Server
             {
                 if (readData == -1)
                     throw new EndOfStreamException();
+
+                val |= (readData & 0x7F) << (size++ * 7);
+                if (size > 5)
+                {
+                    throw new IOException("VarInt too long. Hehe that's punny.");
+                }
+            }
+            return (val | ((readData & 0x7F) << (size * 0x7)));
+        }
+
+        internal static int ReadVarIntWithLegacyCheck(Stream stream)
+        {
+            var val = 0;
+            var size = 0;
+            int readData;
+            while (((readData = stream.ReadByte()) & 0x80) == 0x80)
+            {
+                if (readData == -1)
+                    throw new EndOfStreamException();
+
+                if (size == 0 && readData == 0xFE)
+                    throw new LegacyServerListPingException();
 
                 val |= (readData & 0x7F) << (size++ * 7);
                 if (size > 5)

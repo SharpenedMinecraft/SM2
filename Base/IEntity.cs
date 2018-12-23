@@ -4,6 +4,7 @@ namespace Base
 {
     public interface IEntity
     {
+        int EntityId { get; set; }
         EntitySpawnMethod SpawnMethod { get; }
         string Name { get; }
         Bounds BoundingBox { get; }

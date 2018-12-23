@@ -8,8 +8,9 @@ namespace Entities
 {
     public abstract class BaseEntity : IEntity
     {
+        public int EntityId { get; set; }
         public EntityEffects Effects { get; set; }
-        public VarInt Air { get; set; }
+        public int Air { get; set; } // VarInt
         public Nullable<Chat> CustomName { get; set; }
         public bool IsCustomNameVisible { get; set; }
         public bool IsSilent { get; set; }

@@ -1,12 +1,20 @@
 ﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace Server
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Welcome! Starting Server");
+
+            using (var server = new MainServer(IPAddress.Any, 25565))
+            {
+                server.Start();
+                await Task.Delay(-1);
+            }
         }
     }
 }

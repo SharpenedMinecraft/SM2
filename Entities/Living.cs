@@ -13,9 +13,9 @@ namespace Entities
         /// The Potion Effect Color
         /// 0 for none
         /// </summary>
-        public VarInt PotionEffectColor { get; set; }
+        public int PotionEffectColor { get; set; } // VarInt
         public bool IsPotionAmbientEffect { get; set; }
-        public VarInt ArrowsInEntity { get; set; }
+        public int ArrowsInEntity { get; set; } // VarInt
 
         [Flags]
         public enum HandStateFlags

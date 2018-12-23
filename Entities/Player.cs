@@ -21,7 +21,7 @@ namespace Entities
         public override Int32 Type => 92;
         public override Int32? ObjectID => null;
         public float AdditionalHearts { get; set; }
-        public VarInt Score { get; set; }
+        public Int32 Score { get; set; } // VarInt
         public Player.DisplayedSkinPartsFlags DisplayedSkinParts { get; set; }
         public Player.MainHandFlags MainHand { get; set; }
         public NBT LeftShoulderData { get; set; }

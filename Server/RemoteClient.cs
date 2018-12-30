@@ -24,6 +24,7 @@ namespace Server
         private readonly IProtocol _protocol;
         private readonly TcpClient _client;
         private readonly CancellationTokenSource _cts;
+        private readonly CancellationTokenSource _myCts;
         private readonly SemaphoreSlim _readSemaphore;
         private readonly SemaphoreSlim _writeSemaphore;
         private readonly Task _readTask;
@@ -38,7 +39,8 @@ namespace Server
         {
             _protocol = protocol;
             _client = client;
-            _cts = CancellationTokenSource.CreateLinkedTokenSource(token);
+            _myCts = new CancellationTokenSource();
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(_myCts.Token, token);
             _readSemaphore = new SemaphoreSlim(1, 1);
             _writeSemaphore = new SemaphoreSlim(1, 1);
             _readTask = Task.Run(Read);
@@ -171,6 +173,7 @@ namespace Server
             _client.Dispose();
             _readSemaphore.Dispose();
             _writeSemaphore.Dispose();
+            _myCts.Dispose();
         }
 
         public class PacketInfo

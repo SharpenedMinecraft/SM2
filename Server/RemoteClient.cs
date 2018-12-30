@@ -25,12 +25,12 @@ namespace Server
         private readonly TcpClient _client;
         private readonly CancellationTokenSource _cts;
         private readonly CancellationTokenSource _myCts;
-        private readonly Task _readTask;
-        private readonly Task _writeTask;
-        private readonly Task _processTask;
         private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>();
         private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>();
 
+        private Task _readTask;
+        private Task _writeTask;
+        private Task _processTask;
         private ConnectionState _state;
 
         internal RemoteClient(TcpClient client, IProtocol protocol, CancellationToken token)
@@ -39,6 +39,10 @@ namespace Server
             _client = client;
             _myCts = new CancellationTokenSource();
             _cts = CancellationTokenSource.CreateLinkedTokenSource(_myCts.Token, token);
+        }
+
+        internal void StartProcessing()
+        {
             _readTask = Task.Run(Read);
             _writeTask = Task.Run(Write);
             _processTask = Task.Run(Process);

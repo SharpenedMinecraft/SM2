@@ -48,6 +48,7 @@ namespace Server
                     var player = World.Overworld.CreateEntity<Player>();
                     var remote = new RemoteClient(client, _protocol, _cts.Token);
                     remote.Player = player;
+                    remote.StartProcessing();
                     _clients.Add(remote);
                     Console.WriteLine("Accepted new Client");
                 }

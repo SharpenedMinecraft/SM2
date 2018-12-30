@@ -20,6 +20,8 @@ namespace Protocol.Latest.Packets
             _toWrite = writeId;
         }
 
+        public Pong() { }
+
         public Task Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();

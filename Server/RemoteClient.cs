@@ -12,7 +12,7 @@ namespace Server
 {
     public class RemoteClient : IDisposable
     {
-        const int loopDelayMS = 2;
+        const int LOOP_DELAY = 2;
 
         public Player Player { get; internal set; }
         public ConnectionState State
@@ -28,6 +28,7 @@ namespace Server
         private readonly SemaphoreSlim _writeSemaphore;
         private readonly Task _readTask;
         private readonly Task _writeTask;
+        private readonly Task _processTask;
         private readonly ConcurrentQueue<IPacket> _writeQueue = new ConcurrentQueue<IPacket>();
         private readonly ConcurrentQueue<PacketInfo> _processQueue = new ConcurrentQueue<PacketInfo>();
 
@@ -42,6 +43,7 @@ namespace Server
             _writeSemaphore = new SemaphoreSlim(1, 1);
             _readTask = Task.Run(Read);
             _writeTask = Task.Run(Write);
+            _processTask = Task.Run(Process);
         }
 
         private async Task Read()
@@ -91,7 +93,32 @@ namespace Server
                         buffOwner?.Dispose();
                     }
                 }
-                await Task.Delay(loopDelayMS);
+                await Task.Delay(LOOP_DELAY);
+            }
+        }
+
+        private async Task Process()
+        {
+            while (!_cts.IsCancellationRequested)
+            {
+                try
+                {
+                    if (!_processQueue.TryDequeue(out PacketInfo info))
+                    {
+                        await Task.Delay(LOOP_DELAY);
+                        continue;
+                    }
+
+                    var packet = _protocol.GetPacket(info.Id, false, this);
+
+                    using (var stream = new MemoryStream(info.Data.ToArray()))
+                        await packet.Read(stream, this);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception occured while Processing: ");
+                    Console.WriteLine(ex);
+                }
             }
         }
 
@@ -101,7 +128,7 @@ namespace Server
             {
                 if (!_writeQueue.TryDequeue(out IPacket packet))
                 {
-                    await Task.Delay(loopDelayMS);
+                    await Task.Delay(LOOP_DELAY);
                     continue;
                 }
 

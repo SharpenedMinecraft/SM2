@@ -12,4 +12,8 @@
     <Folder Include="Packets\Play\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.7.1" />
+  </ItemGroup>
+
 </Project>

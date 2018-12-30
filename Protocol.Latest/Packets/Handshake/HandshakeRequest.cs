@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 using Server;
 using static Server.RemoteClient;
 
@@ -21,7 +22,7 @@ namespace Protocol.Latest.Packets
             var protocolID = NetworkUtils.ReadVarInt(stream);
             if (protocolID != LatestProtocol.ProtocolID)
             {
-                Console.WriteLine("Unkown Protocol ID " + protocolID);
+                Log.Warning("Unkown Protocol ID " + protocolID);
             }
             var usedServerAddress = NetworkUtils.ReadString(stream);
             var usedPort = NetworkUtils.ReadUShort(stream);

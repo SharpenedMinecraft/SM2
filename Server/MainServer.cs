@@ -1,5 +1,6 @@
 ﻿using Base;
 using Entities;
+using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Server
     public sealed class MainServer : IDisposable
     {
         public World World { get; }
-
+        
         private readonly TcpListener _listener;
         private readonly CancellationTokenSource _cts;
         private readonly IProtocol _protocol;
@@ -50,12 +51,11 @@ namespace Server
                     remote.Player = player;
                     remote.StartProcessing();
                     _clients.Add(remote);
-                    Console.WriteLine("Accepted new Client");
+                    Log.Information("Accepted new Client");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception while Listening: ");
-                    Console.WriteLine(ex);
+                    Log.Error(ex, "Exception while Listening");
                 }
             }
         }

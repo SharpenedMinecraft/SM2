@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Serilog;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -15,11 +16,7 @@ namespace Server
         const int LOOP_DELAY = 2;
 
         public Player Player { get; internal set; }
-        public ConnectionState State
-        {
-            get => _state;
-            set { _state = value; Console.WriteLine("Switched to State " + Enum.GetName(typeof(ConnectionState), value)); }
-        }
+        public ConnectionState State { get; set; }
 
         private readonly IProtocol _protocol;
         private readonly TcpClient _client;
@@ -31,7 +28,6 @@ namespace Server
         private Task _readTask;
         private Task _writeTask;
         private Task _processTask;
-        private ConnectionState _state;
 
         internal RemoteClient(TcpClient client, IProtocol protocol, CancellationToken token)
         {
@@ -78,8 +74,7 @@ namespace Server
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Exception while Reading: ");
-                        Console.WriteLine(ex);
+                        Log.Error(ex, "Exception while Reading");
                     }
 
                 }
@@ -102,8 +97,7 @@ namespace Server
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception occured while Processing: ");
-                    Console.WriteLine(ex);
+                    Log.Error(ex, "Exception occured while Processing");
                 }
             }
         }
@@ -131,8 +125,7 @@ namespace Server
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception while trying to Write:");
-                    Console.WriteLine(ex);
+                    Log.Error(ex, "Exception while trying to Write");
                 }
             }
         }

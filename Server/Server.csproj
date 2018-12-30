@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.7.1" />
     <PackageReference Include="System.Buffers.Primitives" Version="0.1.0-alpha-001" />
   </ItemGroup>
 

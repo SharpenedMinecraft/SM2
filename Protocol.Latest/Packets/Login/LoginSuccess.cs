@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Entities;
+using Serilog;
 using Server;
 
 namespace Protocol.Latest.Packets
@@ -48,7 +49,7 @@ namespace Protocol.Latest.Packets
                 }
                 else
                 {
-                    Console.WriteLine($"Coudnt get UUID for {p.Username}");
+                    Log.Error($"Coudnt get UUID for {p.Username}");
                     u = Guid.NewGuid();
                 }
             }

@@ -28,8 +28,8 @@ namespace Server
         private readonly Task _readTask;
         private readonly Task _writeTask;
         private readonly Task _processTask;
-        private readonly ConcurrentQueue<IPacket> _writeQueue = new ConcurrentQueue<IPacket>();
-        private readonly ConcurrentQueue<PacketInfo> _processQueue = new ConcurrentQueue<PacketInfo>();
+        private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>();
+        private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>();
 
         private ConnectionState _state;
 
@@ -63,7 +63,7 @@ namespace Server
                             {
                                 var id = NetworkUtils.ReadVarInt(dataStream);
                                 var dataSlice = buffer.Slice((int)dataStream.Position);
-                                _processQueue.Enqueue(new PacketInfo()
+                                _processQueue.Add(new PacketInfo()
                                 {
                                     TotalLength = length,
                                     Id = id,
@@ -89,11 +89,7 @@ namespace Server
             {
                 try
                 {
-                    if (!_processQueue.TryDequeue(out PacketInfo info))
-                    {
-                        await Task.Delay(LOOP_DELAY);
-                        continue;
-                    }
+                    var info = _processQueue.Take();
 
                     var packet = _protocol.GetPacket(info.Id, false, this);
 
@@ -112,11 +108,7 @@ namespace Server
         {
             while (!_cts.IsCancellationRequested)
             {
-                if (!_writeQueue.TryDequeue(out IPacket packet))
-                {
-                    await Task.Delay(LOOP_DELAY);
-                    continue;
-                }
+                var packet = _writeQueue.Take();
                 try
                 {
                     using (var stream = new MemoryStream())
@@ -143,7 +135,7 @@ namespace Server
 
         public void Write<T>(T packet) where T : IPacket
         {
-            _writeQueue.Enqueue(packet);
+            _writeQueue.Add(packet);
         }
 
         public void Dispose()

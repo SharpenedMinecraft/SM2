@@ -22,6 +22,7 @@ namespace Entities
         public override Int32? ObjectID => null;
 
         public string Username { get; set; }
+        public Guid UUID { get; set; }
 
         public float AdditionalHearts { get; set; }
         public Int32 Score { get; set; } // VarInt

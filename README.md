@@ -1,6 +1,5 @@
 # SM2
 
-Brand new Project, successor of SM1
-powered by https://github.com/HurricanKai/AutoSerialize and Mother Project of it
-
-Brings Minecraft to C#. Kind of.
+Minecraft Server written from the Ground up in C#
+Currently very much WIP.
+Successor of SM1. 

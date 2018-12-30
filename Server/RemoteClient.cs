@@ -78,8 +78,7 @@ namespace Server
                             {
                                 TotalLength = length,
                                 Id = id,
-                                Data = dataSlice,
-                                TotalData = buffer
+                                Data = dataSlice
                             });
                         }
                     }
@@ -179,7 +178,6 @@ namespace Server
             public int TotalLength;
             public int Id;
             public Memory<byte> Data;
-            public Memory<byte> TotalData;
         }
 
         public enum ConnectionState

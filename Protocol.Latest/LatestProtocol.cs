@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Protocol.Latest
 {
-    public class LatestProtocol : IProtocol
+    public sealed class LatestProtocol : IProtocol
     {
         public const int ProtocolID = 404;
         public const string Label = "SM2";

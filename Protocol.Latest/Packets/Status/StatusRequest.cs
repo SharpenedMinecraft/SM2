@@ -8,7 +8,7 @@ using static Server.RemoteClient;
 
 namespace Protocol.Latest.Packets
 {
-    public class StatusRequest : IPacket
+    public sealed class StatusRequest : IPacket
     {
         public Int32 Id => 0x00;
 

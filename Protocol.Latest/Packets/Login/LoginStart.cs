@@ -7,7 +7,7 @@ using Server;
 
 namespace Protocol.Latest.Packets
 {
-    public class LoginStart : IPacket
+    public sealed class LoginStart : IPacket
     {
         public Int32 Id => 0x00;
         public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Login;

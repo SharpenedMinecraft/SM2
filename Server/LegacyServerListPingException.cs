@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Server
 {
     [Serializable]
-    internal class LegacyServerListPingException : Exception
+    internal sealed class LegacyServerListPingException : Exception
     {
         public LegacyServerListPingException()
         {

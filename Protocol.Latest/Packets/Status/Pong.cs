@@ -5,7 +5,7 @@ using Server;
 
 namespace Protocol.Latest.Packets
 {
-    public class Pong : IPacket
+    public sealed class Pong : IPacket
     {
 
         public Int32 Id => 0x01;

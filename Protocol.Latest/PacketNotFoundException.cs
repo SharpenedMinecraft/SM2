@@ -5,7 +5,7 @@ using Server;
 namespace Protocol.Latest
 {
     [Serializable]
-    internal class PacketNotFoundException : Exception
+    public sealed class PacketNotFoundException : Exception
     {
         public int PacketID { get; }
 

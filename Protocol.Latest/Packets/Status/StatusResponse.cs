@@ -5,7 +5,7 @@ using Server;
 
 namespace Protocol.Latest.Packets
 {
-    public class StatusResponse : IPacket
+    public sealed class StatusResponse : IPacket
     {
         public System.Int32 Id => 0x00;
 

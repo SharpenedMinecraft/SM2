@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    public class RemoteClient : IDisposable
+    public sealed class RemoteClient : IDisposable
     {
         const int LOOP_DELAY = 2;
 

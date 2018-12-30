@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    public class MainServer : IDisposable
+    public sealed class MainServer : IDisposable
     {
         public World World { get; }
 

@@ -1,6 +1,6 @@
 ﻿namespace Base
 {
-    public struct Vector3
+    public sealed class Vector3
     {
         public int X;
         public int Y;

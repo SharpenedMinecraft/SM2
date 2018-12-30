@@ -5,7 +5,7 @@ using System.Text;
 namespace Protocol.Latest
 {
     [Serializable]
-    public class UnknownProtocolIDException : Exception
+    public sealed class UnknownProtocolIDException : Exception
     {
         private int? _protocolId;
 

@@ -8,7 +8,7 @@ using static Server.RemoteClient;
 
 namespace Protocol.Latest.Packets
 {
-    public class HandshakeRequest : IPacket
+    public sealed class HandshakeRequest : IPacket
     {
         public Int32 Id => 0x00;
 

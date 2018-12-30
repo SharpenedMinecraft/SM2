@@ -2,33 +2,28 @@
 using Server;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Protocol.Latest
 {
-    public class LatestProtocol : Server.Protocol, IObserver<RemoteClient>
+    public class LatestProtocol : IProtocol
     {
         public const int ProtocolID = 404;
+        public const string Label = "SM2";
+        public const string UserFriendlyVersion = "SM2 - 1.13.2";
 
-        private static IPacket[] packets = new IPacket[]
-            {
-                new HandshakeRequest(),
-                new PingRequest(),
-                new StatusRequest(),
-            };
+        private static IPacket[] _packets = Assembly.GetExecutingAssembly().GetTypes()
+            .Where(x => typeof(IPacket).IsAssignableFrom(x)).Select(x => (IPacket)Activator.CreateInstance(x)).ToArray();
 
-        public override void OnStarted(MainServer server)
+        public String GetLabel() => Label;
+        public Int32 GetProtocolId() => ProtocolID;
+        public string GetUserFriendlyVersion() => UserFriendlyVersion;
+
+        public Server.IPacket GetPacket(Int32 id, bool clientBound, RemoteClient client)
         {
-            Console.WriteLine("Protocol Initialized");
-            server.ConnectionAcceptedObservable.Subscribe(this);
-        }
-
-        void IObserver<RemoteClient>.OnCompleted() { }
-        void IObserver<RemoteClient>.OnError(Exception error) { }
-        void IObserver<RemoteClient>.OnNext(RemoteClient value)
-        {
-            Console.WriteLine("Accepted new Connection");
-            value.ReadObservable.Subscribe(new ProtocolResolver(packets, value));
+            return _packets.FirstOrDefault(x => x.Id == id && client.State == x.DesiredState && x.ClientBound == clientBound) ?? throw new PacketNotFoundException(id);
         }
     }
 }

@@ -5,9 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,25 +20,31 @@ namespace Server
             get => _state;
             set { _state = value; Console.WriteLine("Switched to State " + Enum.GetName(typeof(ConnectionState), value)); }
         }
-        public IObservable<PacketInfo> ReadObservable { get; }
 
+        private readonly IProtocol _protocol;
         private readonly TcpClient _client;
         private readonly CancellationTokenSource _cts;
         private readonly SemaphoreSlim _readSemaphore;
         private readonly SemaphoreSlim _writeSemaphore;
+        private readonly Task _readTask;
+        private readonly Task _writeTask;
+        private readonly ConcurrentQueue<IPacket> _writeQueue = new ConcurrentQueue<IPacket>();
+        private readonly ConcurrentQueue<PacketInfo> _processQueue = new ConcurrentQueue<PacketInfo>();
 
         private ConnectionState _state;
 
-        internal RemoteClient(TcpClient client, CancellationToken token)
+        internal RemoteClient(TcpClient client, IProtocol protocol, CancellationToken token)
         {
+            _protocol = protocol;
             _client = client;
             _cts = CancellationTokenSource.CreateLinkedTokenSource(token);
             _readSemaphore = new SemaphoreSlim(1, 1);
             _writeSemaphore = new SemaphoreSlim(1, 1);
-            ReadObservable = Observable.Create<PacketInfo>(Read).ObserveOn(Scheduler.Default).Publish().RefCount();
+            _readTask = Task.Run(Read);
+            _writeTask = Task.Run(Write);
         }
 
-        private async Task Read(IObserver<PacketInfo> observer)
+        private async Task Read()
         {
             var stream = _client.GetStream();
             while (!_cts.IsCancellationRequested)
@@ -69,7 +72,7 @@ namespace Server
                         {
                             var id = NetworkUtils.ReadVarInt(dataStream);
                             var dataSlice = buffer.Slice((int)dataStream.Position);
-                            observer.OnNext(new PacketInfo()
+                            _processQueue.Enqueue(new PacketInfo()
                             {
                                 TotalLength = length,
                                 Id = id,
@@ -80,7 +83,8 @@ namespace Server
                     }
                     catch (Exception ex)
                     {
-                        observer.OnError(ex);
+                        Console.WriteLine("Exception while Reading: ");
+                        Console.WriteLine(ex);
                     }
                     finally
                     {
@@ -89,36 +93,50 @@ namespace Server
                 }
                 await Task.Delay(loopDelayMS);
             }
-            observer.OnCompleted();
         }
 
-        public async Task Write(Action<Stream> action)
+        private async Task Write()
         {
-            await _writeSemaphore.WaitAsync();
-            try
+            while (!_cts.IsCancellationRequested)
             {
-                using (var stream = new MemoryStream())
+                if (!_writeQueue.TryDequeue(out IPacket packet))
                 {
-                    action(stream);
-                    using (var stream2 = new MemoryStream())
+                    await Task.Delay(loopDelayMS);
+                    continue;
+                }
+
+                await _writeSemaphore.WaitAsync();
+                try
+                {
+                    using (var stream = new MemoryStream())
                     {
-                        NetworkUtils.WriteVarInt(stream2, (int)stream.Position);
-                        stream.Position = 0;
-                        await stream.CopyToAsync(stream2);
-                        stream2.Position = 0;
-                        await stream2.CopyToAsync(_client.GetStream());
+                        NetworkUtils.WriteVarInt(stream, packet.Id);
+                        await packet.Write(stream, this);
+                        using (var stream2 = new MemoryStream())
+                        {
+                            NetworkUtils.WriteVarInt(stream2, (int)stream.Position);
+                            stream.Position = 0;
+                            await stream.CopyToAsync(stream2);
+                            stream2.Position = 0;
+                            await stream2.CopyToAsync(_client.GetStream());
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception while trying to Write:");
+                    Console.WriteLine(ex);
+                }
+                finally
+                {
+                    _writeSemaphore.Release();
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception while trying to Write:");
-                Console.WriteLine(ex);
-            }
-            finally
-            {
-                _writeSemaphore.Release();
-            }
+        }
+
+        public void Write<T>(T packet) where T : IPacket
+        {
+            _writeQueue.Enqueue(packet);
         }
 
         public void Dispose()

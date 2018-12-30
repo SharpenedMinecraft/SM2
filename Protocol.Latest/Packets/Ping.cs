@@ -8,9 +8,9 @@ using static Server.RemoteClient;
 
 namespace Protocol.Latest.Packets
 {
-    public class StatusRequest : IPacket
+    public class Ping : IPacket
     {
-        public Int32 Id => 0x00;
+        public Int32 Id => 0x01;
 
         public RemoteClient.ConnectionState DesiredState => ConnectionState.Status;
 
@@ -18,16 +18,16 @@ namespace Protocol.Latest.Packets
 
         public Task Read(Stream stream, RemoteClient client)
         {
-            // no fields
+            var pingID = NetworkUtils.ReadLong(stream);
 
-            client.Write(new StatusResponse());
+            client.Write(new Pong(pingID));
+
             return Task.CompletedTask;
         }
 
         public Task Write(Stream stream, RemoteClient client)
         {
-            // nothing
-            return Task.CompletedTask;
+            throw new NotImplementedException();
         }
     }
 }

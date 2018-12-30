@@ -5,9 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,18 +14,17 @@ namespace Server
     {
         public World World { get; }
 
-        public IObservable<RemoteClient> ConnectionAcceptedObservable { get; private set; }
-
         private readonly TcpListener _listener;
         private readonly CancellationTokenSource _cts;
-        private readonly List<ServerExtension> _extensions;
-        private bool _started;
+        private readonly IProtocol _protocol;
+        private Task _listenerTask;
+        private List<RemoteClient> _clients = new List<RemoteClient>();
 
-        public MainServer(IPAddress filter, int port)
+        public MainServer(IProtocol protocol, IPAddress filter, int port) 
         {
+            _protocol = protocol;
             _listener = new TcpListener(filter, port);
             _cts = new CancellationTokenSource();
-            _extensions = new List<ServerExtension>();
             World = new World();
             World.Dimensions[0] = new Dimension(); // Overworld
             World.Dimensions[1] = new Dimension(); // Nether
@@ -37,21 +33,12 @@ namespace Server
 
         public void Start()
         {
+            _clients.Clear();
             _listener.Start();
-            ConnectionAcceptedObservable = Observable.Create<RemoteClient>(Listen).ObserveOn(Scheduler.Default).Publish().RefCount();
-            _extensions.ForEach((extension) => extension.OnStarted(this));
-            _started = true;
+            _listenerTask = Task.Run(Listen);
         }
 
-        public void AddExtension(ServerExtension extension)
-        {
-            if (_started) throw new InvalidOperationException("Cannot add new extension after start");
-
-            extension.OnCreated(this);
-            _extensions.Add(extension);
-        }
-
-        private async Task Listen(IObserver<RemoteClient> observer)
+        private async Task Listen()
         {
             while (!_cts.IsCancellationRequested)
             {
@@ -59,22 +46,25 @@ namespace Server
                 {
                     var client = await _listener.AcceptTcpClientAsync();
                     var player = World.Overworld.CreateEntity<Player>();
-                    var remote = new RemoteClient(client, _cts.Token);
+                    var remote = new RemoteClient(client, _protocol, _cts.Token);
                     remote.Player = player;
-                    observer.OnNext(remote);
+                    _clients.Add(remote);
+                    Console.WriteLine("Accepted new Client");
                 }
                 catch (Exception ex)
                 {
-                    observer.OnError(ex);
+                    Console.WriteLine("Exception while Listening: ");
+                    Console.WriteLine(ex);
                 }
             }
-            observer.OnCompleted();
         }
 
         public void Dispose()
         {
             _cts.Cancel();
             _cts.Dispose();
+            _listenerTask.Dispose();
+            _listener.Server.Dispose();
         }
     }
 }

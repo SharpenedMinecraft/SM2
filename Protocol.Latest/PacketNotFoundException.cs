@@ -7,18 +7,18 @@ namespace Protocol.Latest
     [Serializable]
     internal class PacketNotFoundException : Exception
     {
-        public RemoteClient.PacketInfo Value { get; }
+        public int PacketID { get; }
 
         public PacketNotFoundException()
         {
         }
 
-        public PacketNotFoundException(RemoteClient.PacketInfo value)
+        public PacketNotFoundException(int id)
         {
-            this.Value = value;
+            this.PacketID = id;
         }
 
-        public override String Message => $"Packet with ID {Value.Id} could not be found in Current State!";
+        public override String Message => $"Packet with ID {PacketID} could not be found in Current State!";
 
     }
 }

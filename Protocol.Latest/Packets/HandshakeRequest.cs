@@ -14,18 +14,25 @@ namespace Protocol.Latest.Packets
 
         public RemoteClient.ConnectionState DesiredState => ConnectionState.Handshake;
 
-        public async Task Handle(Byte[] data, RemoteClient client)
+        public Boolean ClientBound => false;
+
+        public Task Read(Stream stream, RemoteClient client)
         {
-            Console.WriteLine("Handshake");
-            using (var stream = new MemoryStream(data))
+            var protocolID = NetworkUtils.ReadVarInt(stream);
+            if (protocolID != LatestProtocol.ProtocolID)
             {
-                var protocolID = NetworkUtils.ReadVarInt(stream);
-                if (protocolID != LatestProtocol.ProtocolID)
-                    Console.WriteLine("Unkown Protocol ID " + protocolID);
-                var usedServerAddress = NetworkUtils.ReadString(stream);
-                var usedPort = NetworkUtils.ReadUShort(stream);
-                client.State = (ConnectionState)NetworkUtils.ReadVarInt(stream);
+                Console.WriteLine("Unkown Protocol ID " + protocolID);
             }
+            var usedServerAddress = NetworkUtils.ReadString(stream);
+            var usedPort = NetworkUtils.ReadUShort(stream);
+            client.State = (ConnectionState)NetworkUtils.ReadVarInt(stream);
+
+            return Task.CompletedTask;
+        }
+
+        public Task Write(Stream stream, RemoteClient client)
+        {
+            throw new NotImplementedException();
         }
     }
 }

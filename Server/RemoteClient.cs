@@ -25,8 +25,6 @@ namespace Server
         private readonly TcpClient _client;
         private readonly CancellationTokenSource _cts;
         private readonly CancellationTokenSource _myCts;
-        private readonly SemaphoreSlim _readSemaphore;
-        private readonly SemaphoreSlim _writeSemaphore;
         private readonly Task _readTask;
         private readonly Task _writeTask;
         private readonly Task _processTask;
@@ -41,8 +39,6 @@ namespace Server
             _client = client;
             _myCts = new CancellationTokenSource();
             _cts = CancellationTokenSource.CreateLinkedTokenSource(_myCts.Token, token);
-            _readSemaphore = new SemaphoreSlim(1, 1);
-            _writeSemaphore = new SemaphoreSlim(1, 1);
             _readTask = Task.Run(Read);
             _writeTask = Task.Run(Write);
             _processTask = Task.Run(Process);
@@ -55,33 +51,25 @@ namespace Server
             {
                 while (_client.Available > 0)
                 {
-                    Memory<byte> buffer;
-                    IMemoryOwner<byte> buffOwner = null;
-                    int length;
                     try
                     {
-                        await _readSemaphore.WaitAsync();
-                        try
+                        var length = NetworkUtils.ReadVarIntWithLegacyCheck(stream);
+                        using (var buffOwner = MemoryPool<byte>.Shared.Rent(length))
                         {
-                            length = NetworkUtils.ReadVarIntWithLegacyCheck(stream);
-                            buffOwner = MemoryPool<byte>.Shared.Rent(length);
-                            buffer = buffOwner.Memory;
+                            var buffer = buffOwner.Memory;
                             await stream.ReadAsync(buffer, _cts.Token);
-                        }
-                        finally
-                        {
-                            _readSemaphore.Release();
-                        }
-                        using (var dataStream = new MemoryStream(buffer.ToArray()))
-                        {
-                            var id = NetworkUtils.ReadVarInt(dataStream);
-                            var dataSlice = buffer.Slice((int)dataStream.Position);
-                            _processQueue.Enqueue(new PacketInfo()
+
+                            using (var dataStream = new MemoryStream(buffer.ToArray()))
                             {
-                                TotalLength = length,
-                                Id = id,
-                                Data = dataSlice
-                            });
+                                var id = NetworkUtils.ReadVarInt(dataStream);
+                                var dataSlice = buffer.Slice((int)dataStream.Position);
+                                _processQueue.Enqueue(new PacketInfo()
+                                {
+                                    TotalLength = length,
+                                    Id = id,
+                                    Data = dataSlice
+                                });
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -89,10 +77,7 @@ namespace Server
                         Console.WriteLine("Exception while Reading: ");
                         Console.WriteLine(ex);
                     }
-                    finally
-                    {
-                        buffOwner?.Dispose();
-                    }
+
                 }
                 await Task.Delay(LOOP_DELAY);
             }
@@ -132,8 +117,6 @@ namespace Server
                     await Task.Delay(LOOP_DELAY);
                     continue;
                 }
-
-                await _writeSemaphore.WaitAsync();
                 try
                 {
                     using (var stream = new MemoryStream())
@@ -155,10 +138,6 @@ namespace Server
                     Console.WriteLine("Exception while trying to Write:");
                     Console.WriteLine(ex);
                 }
-                finally
-                {
-                    _writeSemaphore.Release();
-                }
             }
         }
 
@@ -171,8 +150,6 @@ namespace Server
         {
             _cts.Dispose();
             _client.Dispose();
-            _readSemaphore.Dispose();
-            _writeSemaphore.Dispose();
             _myCts.Dispose();
         }
 

@@ -8,4 +8,9 @@
     <ProjectReference Include="..\Server\Server.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Packets\Login\" />
+    <Folder Include="Packets\Play\" />
+  </ItemGroup>
+
 </Project>

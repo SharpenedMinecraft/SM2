@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Server
 {
@@ -22,36 +23,36 @@ namespace Server
             }
             stream.WriteByte((byte)(v));
         }
-        public static void WriteString(Stream stream, string val)
+        public static async ValueTask WriteString(Stream stream, string val)
         {
             var bytes = Encoding.UTF8.GetBytes(val);
             WriteVarInt(stream, bytes.Length);
             if (bytes.Length > 0)
-                stream.Write(bytes, 0, bytes.Length);
+                await stream.WriteAsync(bytes, 0, bytes.Length);
         }
         public static void WriteBool(Stream stream, bool val)
-            => WriteByte(stream, val ? 0x01, 0x00);
+            => WriteByte(stream, val ? (byte)0x01 : (byte)0x00);
         public static void WriteByte(Stream stream, byte val)
         {
             stream.WriteByte(val);
         }
-        public static void WriteUShort(Stream stream, ushort val)
+        public static async ValueTask WriteUShort(Stream stream, ushort val)
         {
-            Span<byte> buff = new byte[2];
-            BinaryPrimitives.WriteUInt16BigEndian(buff, val);
-            stream.Write(buff);
+            Memory<byte> buff = new byte[2];
+            BinaryPrimitives.WriteUInt16BigEndian(buff.Span, val);
+            await stream.WriteAsync(buff);
         }
-        public static void WriteInt(Stream stream, int val)
+        public static async ValueTask WriteInt(Stream stream, int val)
         {
-            Span<byte> buff = new byte[4];
-            BinaryPrimitives.WriteInt32BigEndian(buff, val);
-            stream.Write(buff);
+            Memory<byte> buff = new byte[4];
+            BinaryPrimitives.WriteInt32BigEndian(buff.Span, val);
+            await stream.WriteAsync(buff);
         }
-        public static void WriteLong(Stream stream, long val)
+        public static async ValueTask WriteLong(Stream stream, long val)
         {
-            Span<byte> buff = new byte[8];
-            BinaryPrimitives.WriteInt64BigEndian(buff, val);
-            stream.Write(buff);
+            Memory<byte> buff = new byte[8];
+            BinaryPrimitives.WriteInt64BigEndian(buff.Span, val);
+            await stream.WriteAsync(buff);
         }
 
         public static int ReadVarInt(Stream stream)
@@ -95,12 +96,12 @@ namespace Server
             return (val | ((readData & 0x7F) << (size * 0x7)));
         }
 
-        public static string ReadString(Stream stream)
+        public static async ValueTask<string> ReadString(Stream stream)
         {
             var length = ReadVarInt(stream);
-            Span<byte> buff = new byte[length];
-            stream.Read(buff);
-            return Encoding.UTF8.GetString(buff);
+            Memory<byte> buff = new byte[length];
+            await stream.ReadAsync(buff);
+            return Encoding.UTF8.GetString(buff.Span);
         }
         public static bool ReadBool(Stream stream)
         {
@@ -118,26 +119,26 @@ namespace Server
                 throw new EndOfStreamException();
             return (byte)i;
         }
-        public static ushort ReadUShort(Stream stream)
+        public static async ValueTask<ushort> ReadUShort(Stream stream)
         {
-            Span<byte> buff = new byte[2];
-            stream.Read(buff);
-            return BinaryPrimitives.ReadUInt16BigEndian(buff);
+            Memory<byte> buff = new byte[2];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadUInt16BigEndian(buff.Span);
         }
 
-        public static long ReadInt(Stream stream)
+        public static async ValueTask<int> ReadInt(Stream stream)
         {
-            Span<byte> buff = new byte[4];
-            stream.Read(buff);
-            return BinaryPrimitives.ReadInt32BigEndian(buff);
+            Memory<byte> buff = new byte[4];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadInt32BigEndian(buff.Span);
         }
 
-        public static long ReadLong(Stream stream)
+        public static async ValueTask<long> ReadLong(Stream stream)
         {
 
-            Span<byte> buff = new byte[8];
-            stream.Read(buff);
-            return BinaryPrimitives.ReadInt64BigEndian(buff);
+            Memory<byte> buff = new byte[8];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadInt64BigEndian(buff.Span);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Entities
         public bool IsCustomNameVisible { get; set; }
         public bool IsSilent { get; set; }
         public bool NoGravity { get; set; }
+        public Dimension Dimension { get; set; }
 
         public abstract EntitySpawnMethod SpawnMethod { get; }
         public abstract String Name { get; }

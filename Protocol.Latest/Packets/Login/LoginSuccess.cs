@@ -29,7 +29,7 @@ namespace Protocol.Latest.Packets
 
             client.State = RemoteClient.ConnectionState.Play;
 
-
+            client.Write(new JoinGame());
         }
 
         private async Task<Guid> GetUUID(Player p)

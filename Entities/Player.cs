@@ -26,8 +26,8 @@ namespace Entities
 
         public float AdditionalHearts { get; set; }
         public Int32 Score { get; set; } // VarInt
-        public Player.DisplayedSkinPartsFlags DisplayedSkinParts { get; set; }
-        public Player.MainHandFlags MainHand { get; set; }
+        public DisplayedSkinPartsFlags DisplayedSkinParts { get; set; }
+        public MainHandFlags MainHand { get; set; }
         public NBT LeftShoulderData { get; set; }
         public NBT RightShoulderData { get; set; }
 

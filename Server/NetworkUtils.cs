@@ -29,10 +29,16 @@ namespace Server
             if (bytes.Length > 0)
                 stream.Write(bytes, 0, bytes.Length);
         }
-        public static void WriteShort(Stream stream, short val)
+        public static void WriteBool(Stream stream, bool val)
+            => WriteByte(stream, val ? 0x01, 0x00);
+        public static void WriteByte(Stream stream, byte val)
+        {
+            stream.WriteByte(val);
+        }
+        public static void WriteUShort(Stream stream, ushort val)
         {
             Span<byte> buff = new byte[2];
-            BinaryPrimitives.WriteInt16BigEndian(buff, val);
+            BinaryPrimitives.WriteUInt16BigEndian(buff, val);
             stream.Write(buff);
         }
         public static void WriteInt(Stream stream, int val)
@@ -96,7 +102,22 @@ namespace Server
             stream.Read(buff);
             return Encoding.UTF8.GetString(buff);
         }
-
+        public static bool ReadBool(Stream stream)
+        {
+            var b = ReadByte(stream);
+            if (b == 0x01)
+                return true;
+            if (b == 0x00)
+                return false;
+            throw new InvalidDataException("boolean can only be 0x00 or 0x01");
+        }
+        public static byte ReadByte(Stream stream)
+        {
+            var i = stream.ReadByte();
+            if (i == -1)
+                throw new EndOfStreamException();
+            return (byte)i;
+        }
         public static ushort ReadUShort(Stream stream)
         {
             Span<byte> buff = new byte[2];

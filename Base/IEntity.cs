@@ -4,6 +4,7 @@ namespace Base
 {
     public interface IEntity
     {
+        Dimension Dimension { get; set; }
         int EntityId { get; set; }
         EntitySpawnMethod SpawnMethod { get; }
         string Name { get; }

@@ -14,9 +14,9 @@ namespace Protocol.Latest
         public const string Label = "SM2";
         public const string UserFriendlyVersion = "SM2 - 1.13.2";
 
-        private static Dictionary<int, IPacket> _packets = Assembly.GetExecutingAssembly().GetTypes()
+        private static ILookup<int, IPacket> _packets = Assembly.GetExecutingAssembly().GetTypes()
             .Where(x => typeof(IPacket).IsAssignableFrom(x)).Select(x => (IPacket)Activator.CreateInstance(x))
-            .ToDictionary(x => x.Id);
+            .ToLookup(x => x.Id);
 
         public String GetLabel() => Label;
         public Int32 GetProtocolId() => ProtocolID;
@@ -24,7 +24,7 @@ namespace Protocol.Latest
 
         public Server.IPacket GetPacket(Int32 id, bool clientBound, RemoteClient client)
         {
-            return _packets.TryGetValue(id, out IPacket val) ? val : throw new PacketNotFoundException(id);
+            return _packets[id].FirstOrDefault(x => x.DesiredState == client.State) ?? throw new PacketNotFoundException(id);
         }
     }
 }

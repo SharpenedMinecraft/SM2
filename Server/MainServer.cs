@@ -27,9 +27,9 @@ namespace Server
             _listener = new TcpListener(filter, port);
             _cts = new CancellationTokenSource();
             World = new World();
-            World.Dimensions[0] = new Dimension(); // Overworld
-            World.Dimensions[1] = new Dimension(); // Nether
-            World.Dimensions[-1] = new Dimension(); // End
+            World[0] = new Dimension(); // Overworld
+            World[1] = new Dimension(); // Nether
+            World[-1] = new Dimension(); // End
         }
 
         public void Start()

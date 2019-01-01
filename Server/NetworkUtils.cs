@@ -29,6 +29,18 @@ namespace Server
             if (bytes.Length > 0)
                 stream.Write(bytes, 0, bytes.Length);
         }
+        public static void WriteShort(Stream stream, short val)
+        {
+            Span<byte> buff = new byte[2];
+            BinaryPrimitives.WriteInt16BigEndian(buff, val);
+            stream.Write(buff);
+        }
+        public static void WriteInt(Stream stream, int val)
+        {
+            Span<byte> buff = new byte[4];
+            BinaryPrimitives.WriteInt32BigEndian(buff, val);
+            stream.Write(buff);
+        }
         public static void WriteLong(Stream stream, long val)
         {
             Span<byte> buff = new byte[8];
@@ -90,6 +102,13 @@ namespace Server
             Span<byte> buff = new byte[2];
             stream.Read(buff);
             return BinaryPrimitives.ReadUInt16BigEndian(buff);
+        }
+
+        public static long ReadInt(Stream stream)
+        {
+            Span<byte> buff = new byte[4];
+            stream.Read(buff);
+            return BinaryPrimitives.ReadInt32BigEndian(buff);
         }
 
         public static long ReadLong(Stream stream)

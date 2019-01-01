@@ -15,7 +15,7 @@ namespace Protocol.Latest.Packets
 
         public RemoteClient.ConnectionState DesiredState => ConnectionState.Handshake;
 
-        public Boolean ClientBound => false;
+        public Boolean Clientbound => false;
 
         public Task Read(Stream stream, RemoteClient client)
         {

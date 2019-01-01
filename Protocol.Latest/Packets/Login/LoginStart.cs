@@ -11,7 +11,7 @@ namespace Protocol.Latest.Packets
     {
         public Int32 Id => 0x00;
         public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Login;
-        public Boolean ClientBound => false;
+        public Boolean Clientbound => false;
 
         public Task Read(Stream stream, RemoteClient client)
         {

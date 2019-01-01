@@ -9,11 +9,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Packets\Play\" />
+    <PackageReference Include="Serilog" Version="2.7.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.7.1" />
+    <Folder Include="Packets\Play\" />
   </ItemGroup>
 
 </Project>

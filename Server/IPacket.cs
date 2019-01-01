@@ -10,7 +10,7 @@ namespace Server
         int Id { get; }
         ConnectionState DesiredState { get; }
 
-        bool ClientBound { get; }
+        bool Clientbound { get; }
 
         Task Read(Stream stream, RemoteClient client);
         Task Write(Stream stream, RemoteClient client);

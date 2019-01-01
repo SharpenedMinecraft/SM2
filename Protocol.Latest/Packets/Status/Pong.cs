@@ -10,7 +10,7 @@ namespace Protocol.Latest.Packets
 
         public Int32 Id => 0x01;
         public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Status;
-        public Boolean ClientBound => true;
+        public Boolean Clientbound => true;
 
         private readonly Int64 _toWrite;
 

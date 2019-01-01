@@ -11,7 +11,7 @@ namespace Protocol.Latest.Packets
 
         public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Status;
 
-        public System.Boolean ClientBound => true;
+        public System.Boolean Clientbound => true;
 
         public Task Read(Stream stream, RemoteClient client)
         {

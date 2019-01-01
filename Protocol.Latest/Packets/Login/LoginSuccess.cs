@@ -13,7 +13,7 @@ namespace Protocol.Latest.Packets
     {
         public Int32 Id => 0x02;
         public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Login;
-        public Boolean ClientBound => true;
+        public Boolean Clientbound => true;
 
         public Task Read(Stream stream, RemoteClient client)
         {
@@ -28,6 +28,8 @@ namespace Protocol.Latest.Packets
             NetworkUtils.WriteString(stream, client.Player.Username);
 
             client.State = RemoteClient.ConnectionState.Play;
+
+
         }
 
         private async Task<Guid> GetUUID(Player p)

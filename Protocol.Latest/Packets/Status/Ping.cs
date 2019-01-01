@@ -16,13 +16,11 @@ namespace Protocol.Latest.Packets
 
         public Boolean Clientbound => false;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public async Task Read(Stream stream, RemoteClient client)
         {
-            var pingID = NetworkUtils.ReadLong(stream);
+            var pingID = await NetworkUtils.ReadLong(stream);
 
             client.Write(new Pong(pingID));
-
-            return Task.CompletedTask;
         }
 
         public Task Write(Stream stream, RemoteClient client)

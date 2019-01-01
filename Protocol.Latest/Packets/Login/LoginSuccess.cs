@@ -24,8 +24,8 @@ namespace Protocol.Latest.Packets
         {
             client.Player.UUID = await GetUUID(client.Player);
 
-            NetworkUtils.WriteString(stream, client.Player.UUID.ToString());
-            NetworkUtils.WriteString(stream, client.Player.Username);
+            await NetworkUtils.WriteString(stream, client.Player.UUID.ToString());
+            await NetworkUtils.WriteString(stream, client.Player.Username);
 
             client.State = RemoteClient.ConnectionState.Play;
 

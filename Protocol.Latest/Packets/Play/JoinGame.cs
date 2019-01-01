@@ -16,20 +16,19 @@ namespace Protocol.Latest.Packets
             throw new NotImplementedException();
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public async Task Write(Stream stream, RemoteClient client)
         {
-            NetworkUtils.WriteInt(stream, client.Player.EntityId);
+            await NetworkUtils.WriteInt(stream, client.Player.EntityId);
             NetworkUtils.WriteByte(stream, 8);
-            NetworkUtils.WriteInt(stream, client.Player.Dimension.Id);
+            await NetworkUtils.WriteInt(stream, client.Player.Dimension.Id);
             NetworkUtils.WriteByte(stream, (byte)client.Player.Dimension.Difficulty);
             NetworkUtils.WriteByte(stream, byte.MaxValue); // Max Players, ignored
-            NetworkUtils.WriteString(stream, client.Player.Dimension.LevelType);
+            await NetworkUtils.WriteString(stream, client.Player.Dimension.LevelType);
 #if DEBUG
             NetworkUtils.WriteBool(stream, false);
 #else
             NetworkUtils.WriteBool(stream, true);
 #endif
-            return Task.CompletedTask;
         }
     }
 }

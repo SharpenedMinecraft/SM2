@@ -18,9 +18,9 @@ namespace Protocol.Latest.Packets
             throw new NotImplementedException();
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public async Task Write(Stream stream, RemoteClient client)
         {
-            NetworkUtils.WriteString(stream,
+            await NetworkUtils.WriteString(stream,
 "{" +
 "\"version\": {" +
 "\"name\":\"SM2\"," +
@@ -35,7 +35,6 @@ $"\"description\": {{" +
 $"\"text\": \"Powered by SM2 Alpha; expect bugs!\"" +
 $"}}" +
 $"}}");
-            return Task.CompletedTask;
         }
     }
 }

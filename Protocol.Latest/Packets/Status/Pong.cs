@@ -27,11 +27,9 @@ namespace Protocol.Latest.Packets
             throw new NotImplementedException();
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public async Task Write(Stream stream, RemoteClient client)
         {
-            NetworkUtils.WriteLong(stream, _toWrite);
-
-            return Task.CompletedTask;
+            await NetworkUtils.WriteLong(stream, _toWrite);
         }
     }
 }

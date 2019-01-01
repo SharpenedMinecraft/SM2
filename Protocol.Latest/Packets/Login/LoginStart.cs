@@ -13,10 +13,9 @@ namespace Protocol.Latest.Packets
         public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Login;
         public Boolean Clientbound => false;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public async Task Read(Stream stream, RemoteClient client)
         {
-            client.Player.Username = NetworkUtils.ReadString(stream);
-            return Task.CompletedTask;
+            client.Player.Username = await NetworkUtils.ReadString(stream);
         }
 
         public Task Write(Stream stream, RemoteClient client)

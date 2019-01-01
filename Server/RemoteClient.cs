@@ -3,7 +3,6 @@ using Serilog;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -13,7 +12,7 @@ namespace Server
 {
     public sealed class RemoteClient : IDisposable
     {
-        const int LOOP_DELAY = 2;
+        private const int LOOP_DELAY = 2;
 
         public Player Player { get; internal set; }
         public ConnectionState State { get; set; }

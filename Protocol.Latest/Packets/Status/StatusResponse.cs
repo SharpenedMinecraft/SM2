@@ -23,7 +23,7 @@ namespace Protocol.Latest.Packets
             await NetworkUtils.WriteString(stream,
 "{" +
 "\"version\": {" +
-"\"name\":\"SM2\"," +
+$"\"name\":\"{LatestProtocol.UserFriendlyVersion}\"," +
 $"\"protocol\": {LatestProtocol.ProtocolID}" +
 $"}}," +
 $"\"players\": {{" +

@@ -18,6 +18,6 @@ namespace Protocol.Latest
             _protocolId = protocolId;
         }
 
-        public override String Message => _protocolId != null ? "Unknown Protocol Id " + _protocolId :  "Unknown Protocol Id";
+        public override string Message => _protocolId != null ? "Unknown Protocol Id " + _protocolId : "Unknown Protocol Id";
     }
 }

@@ -8,29 +8,6 @@ namespace Entities
 {
     public sealed class Player : Living
     {
-        public override EntitySpawnMethod SpawnMethod => EntitySpawnMethod.Special;
-        public override String Name => "Player";
-        public override Bounds BoundingBox
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
-        public override String ID => "minecraft:player";
-        public override Int32 Type => 92;
-        public override Int32? ObjectID => null;
-
-        public string Username { get; set; }
-        public Guid UUID { get; set; }
-
-        public float AdditionalHearts { get; set; }
-        public Int32 Score { get; set; } // VarInt
-        public DisplayedSkinPartsFlags DisplayedSkinParts { get; set; }
-        public MainHandFlags MainHand { get; set; }
-        public NBT LeftShoulderData { get; set; }
-        public NBT RightShoulderData { get; set; }
-
         [Flags]
         public enum DisplayedSkinPartsFlags
         {
@@ -43,11 +20,38 @@ namespace Entities
             Hat = 0x40,
         }
 
-        [Flags]
-        public enum MainHandFlags : byte
+        public override EntitySpawnMethod SpawnMethod => EntitySpawnMethod.Special;
+
+        public override string Name => "Player";
+
+        public override Bounds BoundingBox
         {
-            Left = 0,
-            Right = 1,
+            get
+            {
+                throw new NotSupportedException();
+            }
         }
+
+        public override string ID => "minecraft:player";
+
+        public override int Type => 92;
+
+        public override int? ObjectID => null;
+
+        public string Username { get; set; }
+
+        public Guid UUID { get; set; }
+
+        public float AdditionalHearts { get; set; }
+
+        public int Score { get; set; } // VarInt
+
+        public DisplayedSkinPartsFlags DisplayedSkinParts { get; set; }
+
+        public MainHand MainHand { get; set; }
+
+        public NBT LeftShoulderData { get; set; }
+
+        public NBT RightShoulderData { get; set; }
     }
 }

@@ -1,21 +1,18 @@
-﻿using Entities;
-using Serilog;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Entities;
+using Serilog;
 
 namespace Server
 {
     public sealed class RemoteClient : IDisposable
     {
         private const int LOOP_DELAY = 2;
-
-        public Player Player { get; internal set; }
-        public ConnectionState State { get; set; }
 
         private readonly IProtocol _protocol;
         private readonly TcpClient _client;
@@ -34,6 +31,23 @@ namespace Server
             _client = client;
             _myCts = new CancellationTokenSource();
             _cts = CancellationTokenSource.CreateLinkedTokenSource(_myCts.Token, token);
+        }
+
+        public Player Player { get; internal set; }
+
+        public ConnectionState State { get; set; }
+
+        public void Write<T>(T packet)
+            where T : IPacket
+        {
+            _writeQueue.Add(packet);
+        }
+
+        public void Dispose()
+        {
+            _cts.Dispose();
+            _client.Dispose();
+            _myCts.Dispose();
         }
 
         internal void StartProcessing()
@@ -75,8 +89,8 @@ namespace Server
                     {
                         Log.Error(ex, "Exception while Reading");
                     }
-
                 }
+
                 await Task.Delay(LOOP_DELAY);
             }
         }
@@ -127,33 +141,6 @@ namespace Server
                     Log.Error(ex, "Exception while trying to Write");
                 }
             }
-        }
-
-        public void Write<T>(T packet) where T : IPacket
-        {
-            _writeQueue.Add(packet);
-        }
-
-        public void Dispose()
-        {
-            _cts.Dispose();
-            _client.Dispose();
-            _myCts.Dispose();
-        }
-
-        public class PacketInfo
-        {
-            public int TotalLength;
-            public int Id;
-            public Memory<byte> Data;
-        }
-
-        public enum ConnectionState
-        {
-            Handshake = 0,
-            Status = 1,
-            Login = 2,
-            Play = 3,
         }
     }
 }

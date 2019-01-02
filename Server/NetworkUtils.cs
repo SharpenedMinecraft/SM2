@@ -21,8 +21,10 @@ namespace Server
                 v = (int)(((uint)v) >> 7);
                 size++;
             }
-            stream.WriteByte((byte)(v));
+
+            stream.WriteByte((byte)v);
         }
+
         public static async ValueTask WriteString(Stream stream, string val)
         {
             var bytes = Encoding.UTF8.GetBytes(val);
@@ -30,24 +32,29 @@ namespace Server
             if (bytes.Length > 0)
                 await stream.WriteAsync(bytes, 0, bytes.Length);
         }
+
         public static void WriteBool(Stream stream, bool val)
             => WriteByte(stream, val ? (byte)0x01 : (byte)0x00);
+
         public static void WriteByte(Stream stream, byte val)
         {
             stream.WriteByte(val);
         }
+
         public static async ValueTask WriteUShort(Stream stream, ushort val)
         {
             Memory<byte> buff = new byte[2];
             BinaryPrimitives.WriteUInt16BigEndian(buff.Span, val);
             await stream.WriteAsync(buff);
         }
+
         public static async ValueTask WriteInt(Stream stream, int val)
         {
             Memory<byte> buff = new byte[4];
             BinaryPrimitives.WriteInt32BigEndian(buff.Span, val);
             await stream.WriteAsync(buff);
         }
+
         public static async ValueTask WriteLong(Stream stream, long val)
         {
             Memory<byte> buff = new byte[8];
@@ -71,7 +78,55 @@ namespace Server
                     throw new IOException("VarInt too long. Hehe that's punny.");
                 }
             }
-            return (val | ((readData & 0x7F) << (size * 0x7)));
+
+            return val | ((readData & 0x7F) << (size * 0x7));
+        }
+
+        public static async ValueTask<string> ReadString(Stream stream)
+        {
+            var length = ReadVarInt(stream);
+            Memory<byte> buff = new byte[length];
+            await stream.ReadAsync(buff);
+            return Encoding.UTF8.GetString(buff.Span);
+        }
+
+        public static bool ReadBool(Stream stream)
+        {
+            var b = ReadByte(stream);
+            if (b == 0x01)
+                return true;
+            if (b == 0x00)
+                return false;
+            throw new InvalidDataException("boolean can only be 0x00 or 0x01");
+        }
+
+        public static byte ReadByte(Stream stream)
+        {
+            var i = stream.ReadByte();
+            if (i == -1)
+                throw new EndOfStreamException();
+            return (byte)i;
+        }
+
+        public static async ValueTask<ushort> ReadUShort(Stream stream)
+        {
+            Memory<byte> buff = new byte[2];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadUInt16BigEndian(buff.Span);
+        }
+
+        public static async ValueTask<int> ReadInt(Stream stream)
+        {
+            Memory<byte> buff = new byte[4];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadInt32BigEndian(buff.Span);
+        }
+
+        public static async ValueTask<long> ReadLong(Stream stream)
+        {
+            Memory<byte> buff = new byte[8];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadInt64BigEndian(buff.Span);
         }
 
         internal static int ReadVarIntWithLegacyCheck(Stream stream)
@@ -93,52 +148,8 @@ namespace Server
                     throw new IOException("VarInt too long. Hehe that's punny.");
                 }
             }
-            return (val | ((readData & 0x7F) << (size * 0x7)));
-        }
 
-        public static async ValueTask<string> ReadString(Stream stream)
-        {
-            var length = ReadVarInt(stream);
-            Memory<byte> buff = new byte[length];
-            await stream.ReadAsync(buff);
-            return Encoding.UTF8.GetString(buff.Span);
-        }
-        public static bool ReadBool(Stream stream)
-        {
-            var b = ReadByte(stream);
-            if (b == 0x01)
-                return true;
-            if (b == 0x00)
-                return false;
-            throw new InvalidDataException("boolean can only be 0x00 or 0x01");
-        }
-        public static byte ReadByte(Stream stream)
-        {
-            var i = stream.ReadByte();
-            if (i == -1)
-                throw new EndOfStreamException();
-            return (byte)i;
-        }
-        public static async ValueTask<ushort> ReadUShort(Stream stream)
-        {
-            Memory<byte> buff = new byte[2];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadUInt16BigEndian(buff.Span);
-        }
-
-        public static async ValueTask<int> ReadInt(Stream stream)
-        {
-            Memory<byte> buff = new byte[4];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadInt32BigEndian(buff.Span);
-        }
-
-        public static async ValueTask<long> ReadLong(Stream stream)
-        {
-
-            Memory<byte> buff = new byte[8];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadInt64BigEndian(buff.Span);
+            return val | ((readData & 0x7F) << (size * 0x7));
         }
     }
 }

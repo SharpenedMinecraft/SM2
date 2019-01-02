@@ -11,9 +11,11 @@ namespace Protocol.Latest.Packets
 {
     public sealed class LoginSuccess : IPacket
     {
-        public Int32 Id => 0x02;
-        public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Login;
-        public Boolean Clientbound => true;
+        public int Id => 0x02;
+
+        public ConnectionState DesiredState => ConnectionState.Login;
+
+        public bool Clientbound => true;
 
         public Task Read(Stream stream, RemoteClient client)
         {
@@ -27,7 +29,7 @@ namespace Protocol.Latest.Packets
             await NetworkUtils.WriteString(stream, client.Player.UUID.ToString());
             await NetworkUtils.WriteString(stream, client.Player.Username);
 
-            client.State = RemoteClient.ConnectionState.Play;
+            client.State = ConnectionState.Play;
 
             client.Write(new JoinGame());
         }
@@ -38,15 +40,16 @@ namespace Protocol.Latest.Packets
 
             using (var wc = new HttpClient())
             {
-                var result = await wc.PostAsync($"https://api.mojang.com/profiles/minecraft",
+                var requestResult = await wc.PostAsync(
+                    $"https://api.mojang.com/profiles/minecraft",
                     new StringContent("[ \"" + p.Username + "\"]", Encoding.UTF8, "application/json"));
-                if (!result.IsSuccessStatusCode)
-                    throw new Exception(result.ReasonPhrase);
-                var Sresult = await result.Content.ReadAsStringAsync();
-                var _result = Sresult.Split('"');
-                if (_result.Length > 1)
+                if (!requestResult.IsSuccessStatusCode)
+                    throw new Exception(requestResult.ReasonPhrase);
+                var fullResult = await requestResult.Content.ReadAsStringAsync();
+                var result = fullResult.Split('"');
+                if (result.Length > 1)
                 {
-                    var uuid = _result[3];
+                    var uuid = result[3];
                     u = new Guid(uuid);
                 }
                 else

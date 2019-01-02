@@ -7,9 +7,11 @@ namespace Protocol.Latest.Packets
 {
     public class JoinGame : IPacket
     {
-        public Int32 Id => 0x25;
-        public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Play;
-        public Boolean Clientbound => true;
+        public int Id => 0x25;
+
+        public ConnectionState DesiredState => ConnectionState.Play;
+
+        public bool Clientbound => true;
 
         public Task Read(Stream stream, RemoteClient client)
         {

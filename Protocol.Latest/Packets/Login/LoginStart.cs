@@ -9,9 +9,11 @@ namespace Protocol.Latest.Packets
 {
     public sealed class LoginStart : IPacket
     {
-        public Int32 Id => 0x00;
-        public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Login;
-        public Boolean Clientbound => false;
+        public int Id => 0x00;
+
+        public ConnectionState DesiredState => ConnectionState.Login;
+
+        public bool Clientbound => false;
 
         public async Task Read(Stream stream, RemoteClient client)
         {

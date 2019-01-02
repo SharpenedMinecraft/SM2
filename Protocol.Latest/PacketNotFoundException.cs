@@ -7,18 +7,15 @@ namespace Protocol.Latest
     [Serializable]
     public sealed class PacketNotFoundException : Exception
     {
-        public int PacketID { get; }
-
-        public PacketNotFoundException()
-        {
-        }
+        public PacketNotFoundException() { }
 
         public PacketNotFoundException(int id)
         {
             this.PacketID = id;
         }
 
-        public override String Message => $"Packet with ID {PacketID} could not be found in Current State!";
+        public int PacketID { get; }
 
+        public override string Message => $"Packet with ID {PacketID} could not be found in Current State!";
     }
 }

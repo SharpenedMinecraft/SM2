@@ -7,11 +7,11 @@ namespace Protocol.Latest.Packets
 {
     public sealed class StatusResponse : IPacket
     {
-        public System.Int32 Id => 0x00;
+        public int Id => 0x00;
 
-        public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Status;
+        public ConnectionState DesiredState => ConnectionState.Status;
 
-        public System.Boolean Clientbound => true;
+        public bool Clientbound => true;
 
         public Task Read(Stream stream, RemoteClient client)
         {
@@ -20,7 +20,9 @@ namespace Protocol.Latest.Packets
 
         public async Task Write(Stream stream, RemoteClient client)
         {
-            await NetworkUtils.WriteString(stream,
+            await NetworkUtils.WriteString(
+                stream,
+#pragma warning disable SA1118 // Parameter must not span multiple lines
 "{" +
 "\"version\": {" +
 $"\"name\":\"{LatestProtocol.UserFriendlyVersion}\"," +
@@ -35,6 +37,7 @@ $"\"description\": {{" +
 $"\"text\": \"Powered by SM2 Alpha; expect bugs!\"" +
 $"}}" +
 $"}}");
+#pragma warning restore SA1118 // Parameter must not span multiple lines
         }
     }
 }

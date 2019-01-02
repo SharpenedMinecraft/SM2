@@ -11,11 +11,11 @@ namespace Protocol.Latest.Packets
 {
     public sealed class HandshakeRequest : IPacket
     {
-        public Int32 Id => 0x00;
+        public int Id => 0x00;
 
-        public RemoteClient.ConnectionState DesiredState => ConnectionState.Handshake;
+        public ConnectionState DesiredState => ConnectionState.Handshake;
 
-        public Boolean Clientbound => false;
+        public bool Clientbound => false;
 
         public Task Read(Stream stream, RemoteClient client)
         {
@@ -24,6 +24,7 @@ namespace Protocol.Latest.Packets
             {
                 Log.Warning("Unkown Protocol ID " + protocolID);
             }
+
             var usedServerAddress = NetworkUtils.ReadString(stream);
             var usedPort = NetworkUtils.ReadUShort(stream);
             client.State = (ConnectionState)NetworkUtils.ReadVarInt(stream);

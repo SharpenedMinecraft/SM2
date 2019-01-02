@@ -5,7 +5,9 @@
         IPacket GetPacket(int id, bool clientBound, RemoteClient client);
 
         int GetProtocolId();
+
         string GetLabel();
+
         string GetUserFriendlyVersion();
     }
 }

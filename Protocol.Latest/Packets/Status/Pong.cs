@@ -7,13 +7,7 @@ namespace Protocol.Latest.Packets
 {
     public sealed class Pong : IPacket
     {
-
-        public Int32 Id => 0x01;
-        public RemoteClient.ConnectionState DesiredState => RemoteClient.ConnectionState.Status;
-        public Boolean Clientbound => true;
-
-        private readonly Int64 _toWrite;
-
+        private readonly long _toWrite;
 
         public Pong(long writeId)
         {
@@ -21,6 +15,12 @@ namespace Protocol.Latest.Packets
         }
 
         public Pong() { }
+
+        public int Id => 0x01;
+
+        public ConnectionState DesiredState => ConnectionState.Status;
+
+        public bool Clientbound => true;
 
         public Task Read(Stream stream, RemoteClient client)
         {

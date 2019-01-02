@@ -1,10 +1,7 @@
-﻿using Protocol.Latest.Packets;
-using Server;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using Server;
 
 namespace Protocol.Latest
 {
@@ -14,15 +11,17 @@ namespace Protocol.Latest
         public const string Label = "SM2";
         public const string UserFriendlyVersion = "SM2 - 1.13.2";
 
-        private static ILookup<int, IPacket> _packets = Assembly.GetExecutingAssembly().GetTypes()
+        private static readonly ILookup<int, IPacket> _packets = Assembly.GetExecutingAssembly().GetTypes()
             .Where(x => typeof(IPacket).IsAssignableFrom(x)).Select(x => (IPacket)Activator.CreateInstance(x))
             .ToLookup(x => x.Id);
 
-        public String GetLabel() => Label;
-        public Int32 GetProtocolId() => ProtocolID;
+        public string GetLabel() => Label;
+
+        public int GetProtocolId() => ProtocolID;
+
         public string GetUserFriendlyVersion() => UserFriendlyVersion;
 
-        public Server.IPacket GetPacket(Int32 id, bool clientBound, RemoteClient client)
+        public IPacket GetPacket(int id, bool clientBound, RemoteClient client)
         {
             return _packets[id].FirstOrDefault(x => x.DesiredState == client.State) ?? throw new PacketNotFoundException(id);
         }

@@ -11,9 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpecialTypes", "SpecialType
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{A86194CD-E0ED-4424-90D4-C6367253AA7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protocol.Latest", "Protocol.Latest\Protocol.Latest.csproj", "{14E708AA-FB06-4004-8172-B83711472F90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Protocol.Latest", "Protocol.Latest\Protocol.Latest.csproj", "{14E708AA-FB06-4004-8172-B83711472F90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerExecutable", "ServerExecutable\ServerExecutable.csproj", "{11902BE8-CAD5-4622-A457-B0E576FF05D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerExecutable", "ServerExecutable\ServerExecutable.csproj", "{11902BE8-CAD5-4622-A457-B0E576FF05D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

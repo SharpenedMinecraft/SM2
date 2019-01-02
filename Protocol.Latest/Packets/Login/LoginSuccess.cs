@@ -31,7 +31,7 @@ namespace Protocol.Latest.Packets
 
             client.State = ConnectionState.Play;
 
-            client.Write(new JoinGame());
+            LatestProtocol.QueueLoginSequence(client);
         }
 
         private async Task<Guid> GetUUID(Player p)

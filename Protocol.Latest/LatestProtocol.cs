@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using Protocol.Latest.Packets;
 using Server;
 
 namespace Protocol.Latest
@@ -24,6 +25,12 @@ namespace Protocol.Latest
         public IPacket GetPacket(int id, bool clientBound, RemoteClient client)
         {
             return _packets[id].FirstOrDefault(x => x.DesiredState == client.State) ?? throw new PacketNotFoundException(id);
+        }
+
+        internal static void QueueLoginSequence(RemoteClient client)
+        {
+            client.Write(new JoinGame());
+            client.Write(new ServerDifficulty());
         }
     }
 }

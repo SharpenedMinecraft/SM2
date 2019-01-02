@@ -10,6 +10,4 @@
     <Rule Id="SA1636" Action="None" />
     <Rule Id="SA1652" Action="None" />
   </Rules>
-  <Rules AnalyzerId="" RuleNamespace="">
-  </Rules>
 </RuleSet>

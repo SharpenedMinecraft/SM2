@@ -21,9 +21,11 @@ namespace Server
         private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>();
         private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>();
 
+#pragma warning disable IDE0052 // Remove unread private members
         private Task _readTask;
         private Task _writeTask;
         private Task _processTask;
+#pragma warning restore IDE0052 // Remove unread private members
 
         internal RemoteClient(TcpClient client, IProtocol protocol, CancellationToken token)
         {
@@ -34,6 +36,8 @@ namespace Server
         }
 
         public Player Player { get; internal set; }
+
+        public bool IsPerformingLoginSequence { get; set; }
 
         public ConnectionState State { get; set; }
 
@@ -107,6 +111,10 @@ namespace Server
 
                     using (var stream = new MemoryStream(info.Data.ToArray()))
                         await packet.Read(stream, this);
+                }
+                catch (PacketNotFoundException ex)
+                {
+                    Log.Warning(ex.Message);
                 }
                 catch (Exception ex)
                 {

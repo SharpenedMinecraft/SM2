@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using Server;
 
-namespace Protocol.Latest
+namespace Server
 {
     [Serializable]
     public sealed class PacketNotFoundException : Exception

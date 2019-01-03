@@ -27,11 +27,17 @@ namespace Protocol.Latest
             return _packets[id].FirstOrDefault(x => x.DesiredState == client.State) ?? throw new PacketNotFoundException(id);
         }
 
-        internal static void QueueLoginSequence(RemoteClient client)
+        internal static void QueueLoginSequencePart1(RemoteClient client)
         {
             client.Write(new JoinGame());
             client.Write(new ServerDifficulty());
             client.Write(new SpawnPosition());
+            client.Write(new PlayerAbilitiesClientbound());
+        }
+
+        internal static void QueueLoginSequencePart2(RemoteClient client)
+        {
+
         }
     }
 }

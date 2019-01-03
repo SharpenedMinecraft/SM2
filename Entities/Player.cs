@@ -32,6 +32,8 @@ namespace Entities
             }
         }
 
+        public PlayerSettings Settings { get; set; }
+
         public override string ID => "minecraft:player";
 
         public override int Type => 92;

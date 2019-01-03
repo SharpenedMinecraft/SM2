@@ -17,6 +17,7 @@ namespace Protocol.Latest.Packets
 
         public async Task Read(Stream stream, RemoteClient client)
         {
+            client.IsPerformingLoginSequence = true;
             client.Player.Username = await NetworkUtils.ReadString(stream);
         }
 

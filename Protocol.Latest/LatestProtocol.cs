@@ -37,7 +37,7 @@ namespace Protocol.Latest
 
         internal static void QueueLoginSequencePart2(RemoteClient client)
         {
-
+            client.Write(new PlayerPositionAndLookClientbound());
         }
     }
 }

@@ -24,13 +24,7 @@ namespace Entities
 
         public override string Name => "Player";
 
-        public override Bounds BoundingBox
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public override Bounds BoundingBox => throw new NotSupportedException();
 
         public PlayerSettings Settings { get; set; }
 

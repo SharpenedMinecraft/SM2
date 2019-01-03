@@ -7,8 +7,8 @@ namespace Base
 {
     public static class TeleportManager
     {
-        private static ConcurrentDictionary<IEntity, List<int>> _ids = new ConcurrentDictionary<IEntity, List<int>>();
-        private static Random _rnd = new Random();
+        private static readonly ConcurrentDictionary<IEntity, List<int>> _ids = new ConcurrentDictionary<IEntity, List<int>>();
+        private static readonly Random _rnd = new Random();
 
         public static int GenerateId(IEntity entity)
         {

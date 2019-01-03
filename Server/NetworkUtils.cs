@@ -66,6 +66,14 @@ namespace Server
         public static ValueTask WriteBlockPosition(Stream stream, BlockPosition pos)
             => WriteLong(stream, ((((long)pos.X) & 0x3FFFFFF) << 38) | ((((long)pos.Y) & 0xFFF) << 26) | (((long)pos.Z) & 0x3FFFFFF));
 
+        public static ValueTask WriteFloat(Stream stream, float val)
+        {
+            var v = BitConverter.SingleToInt32Bits(val);
+            if (BitConverter.IsLittleEndian)
+                v = BinaryPrimitives.ReverseEndianness(v);
+            return WriteInt(stream, v);
+        }
+
         public static int ReadVarInt(Stream stream)
         {
             var val = 0;
@@ -153,6 +161,14 @@ namespace Server
                 Y = (int)y,
                 Z = (int)z,
             };
+        }
+
+        public static async ValueTask<float> ReadFloat(Stream stream)
+        {
+            var v = await ReadInt(stream);
+            if (BitConverter.IsLittleEndian)
+                v = BinaryPrimitives.ReverseEndianness(v);
+            return BitConverter.Int32BitsToSingle(v);
         }
 
         internal static int ReadVarIntWithLegacyCheck(Stream stream)

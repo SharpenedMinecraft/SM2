@@ -34,5 +34,7 @@ namespace Entities
         public abstract int Type { get; }
 
         public abstract int? ObjectID { get; }
+
+        public EntityTransform Transform { get; set; }
     }
 }

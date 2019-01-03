@@ -74,6 +74,14 @@ namespace Server
             return WriteInt(stream, v);
         }
 
+        public static ValueTask WriteDouble(Stream stream, double val)
+        {
+            var v = BitConverter.DoubleToInt64Bits(val);
+            if (BitConverter.IsLittleEndian)
+                v = BinaryPrimitives.ReverseEndianness(v);
+            return WriteLong(stream, v);
+        }
+
         public static int ReadVarInt(Stream stream)
         {
             var val = 0;
@@ -169,6 +177,14 @@ namespace Server
             if (BitConverter.IsLittleEndian)
                 v = BinaryPrimitives.ReverseEndianness(v);
             return BitConverter.Int32BitsToSingle(v);
+        }
+
+        public static async ValueTask<double> ReadDouble(Stream stream)
+        {
+            var v = await ReadLong(stream);
+            if (BitConverter.IsLittleEndian)
+                v = BinaryPrimitives.ReverseEndianness(v);
+            return BitConverter.Int64BitsToDouble(v);
         }
 
         internal static int ReadVarIntWithLegacyCheck(Stream stream)

@@ -8,6 +8,8 @@ namespace Base
 
         int EntityId { get; set; }
 
+        EntityTransform Transform { get; set; }
+
         EntitySpawnMethod SpawnMethod { get; }
 
         string Name { get; }

@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Protocol.Latest;
 using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using Server;
 
 namespace ServerExecutable
@@ -12,6 +13,11 @@ namespace ServerExecutable
         public static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
+#if DEBUG
+                .MinimumLevel.Debug()
+#else
+                .MinimumLevel.Information()
+#endif
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .WriteTo.RollingFile("./logs/{Date}.log")

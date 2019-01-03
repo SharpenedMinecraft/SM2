@@ -26,13 +26,14 @@ namespace Base
 
         public BlockPosition SpawnPosition { get; set; } = new BlockPosition();
 
-        public T CreateEntity<T>()
+        public T CreateEntity<T>(EntityTransform transform)
             where T : IEntity, new()
         {
             var entity = new T
             {
                 EntityId = _nextEntityId++,
-                Dimension = this
+                Dimension = this,
+                Transform = transform
             };
             Entities.Add(entity);
             return entity;

@@ -21,7 +21,7 @@ namespace Protocol.Latest.Packets
         public async Task Write(Stream stream, RemoteClient client)
         {
             await NetworkUtils.WriteInt(stream, client.Player.EntityId);
-            NetworkUtils.WriteByte(stream, 8);
+            NetworkUtils.WriteByte(stream, 1);
             await NetworkUtils.WriteInt(stream, client.Player.Dimension.Id);
             NetworkUtils.WriteByte(stream, (byte)client.Player.Dimension.Difficulty);
             NetworkUtils.WriteByte(stream, byte.MaxValue); // Max Players, ignored

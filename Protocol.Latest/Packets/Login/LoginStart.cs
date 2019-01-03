@@ -19,6 +19,7 @@ namespace Protocol.Latest.Packets
         {
             client.IsPerformingLoginSequence = true;
             client.Player.Username = await NetworkUtils.ReadString(stream);
+            client.Write(new LoginSuccess());
         }
 
         public Task Write(Stream stream, RemoteClient client)

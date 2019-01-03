@@ -12,8 +12,6 @@ namespace Server
 {
     public sealed class RemoteClient : IDisposable
     {
-        private const int LOOP_DELAY = 2;
-
         private readonly IProtocol _protocol;
         private readonly TcpClient _client;
         private readonly CancellationTokenSource _cts;
@@ -64,7 +62,7 @@ namespace Server
         private async Task Read()
         {
             var stream = _client.GetStream();
-            while (!_cts.IsCancellationRequested)
+            while (!_cts.IsCancellationRequested && stream.CanRead)
             {
                 while (_client.Available > 0)
                 {
@@ -94,8 +92,6 @@ namespace Server
                         Log.Error(ex, "Exception while Reading");
                     }
                 }
-
-                await Task.Delay(LOOP_DELAY);
             }
         }
 
@@ -108,6 +104,10 @@ namespace Server
                     var info = _processQueue.Take();
 
                     var packet = _protocol.GetPacket(info.Id, false, this);
+
+#if DEBUG
+                    Log.Debug($"Processed Packet {packet.GetType().Name} ({packet.Id})");
+#endif
 
                     using (var stream = new MemoryStream(info.Data.ToArray()))
                         await packet.Read(stream, this);
@@ -143,6 +143,9 @@ namespace Server
                             await stream2.CopyToAsync(_client.GetStream());
                         }
                     }
+#if DEBUG
+                    Log.Debug($"Wrote Packet {packet.GetType().Name} ({packet.Id})");
+#endif
                 }
                 catch (Exception ex)
                 {

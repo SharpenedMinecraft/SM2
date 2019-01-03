@@ -31,6 +31,7 @@ namespace Protocol.Latest
         {
             client.Write(new JoinGame());
             client.Write(new ServerDifficulty());
+            client.Write(new SpawnPosition());
         }
     }
 }

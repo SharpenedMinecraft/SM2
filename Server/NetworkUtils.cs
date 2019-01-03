@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Base;
 
 namespace Server
 {
@@ -11,7 +12,7 @@ namespace Server
         public static void WriteVarInt(Stream stream, int val)
         {
             var size = 0;
-            var v = (int)val;
+            var v = val;
             while ((v & -0x80) != 0)
             {
                 if (size > 5)
@@ -61,6 +62,9 @@ namespace Server
             BinaryPrimitives.WriteInt64BigEndian(buff.Span, val);
             await stream.WriteAsync(buff);
         }
+
+        public static ValueTask WriteBlockPosition(Stream stream, BlockPosition pos)
+            => WriteLong(stream, ((((long)pos.X) & 0x3FFFFFF) << 38) | ((((long)pos.Y) & 0xFFF) << 26) | (((long)pos.Z) & 0x3FFFFFF));
 
         public static int ReadVarInt(Stream stream)
         {
@@ -127,6 +131,28 @@ namespace Server
             Memory<byte> buff = new byte[8];
             await stream.ReadAsync(buff);
             return BinaryPrimitives.ReadInt64BigEndian(buff.Span);
+        }
+
+        public static async ValueTask<ulong> ReadULong(Stream stream)
+        {
+            Memory<byte> buff = new byte[8];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadUInt64BigEndian(buff.Span);
+        }
+
+        public static async ValueTask<BlockPosition> ReadBlockPosition(Stream stream)
+        {
+            var val = await ReadLong(stream);
+
+            var x = val >> 38;
+            var y = (val >> 26) & 0xFFF;
+            var z = val << 38 >> 38;
+            return new BlockPosition()
+            {
+                X = (int)x,
+                Y = (int)y,
+                Z = (int)z,
+            };
         }
 
         internal static int ReadVarIntWithLegacyCheck(Stream stream)

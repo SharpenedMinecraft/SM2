@@ -10,13 +10,13 @@ namespace Base
         public Dimension()
         {
             Entities = new ConcurrentBag<IEntity>();
-            Chunks = new ConcurrentDictionary<Vector2, Chunk>();
+            Chunks = new ConcurrentDictionary<ChunkPosition, Chunk>();
             LevelType = Base.LevelType.DEFAULT;
         }
 
         public ConcurrentBag<IEntity> Entities { get; }
 
-        public ConcurrentDictionary<Vector2, Chunk> Chunks { get; }
+        public ConcurrentDictionary<ChunkPosition, Chunk> Chunks { get; }
 
         public int Id { get; internal set; }
 
@@ -24,12 +24,16 @@ namespace Base
 
         public string LevelType { get; set; }
 
+        public BlockPosition SpawnPosition { get; set; } = new BlockPosition();
+
         public T CreateEntity<T>()
             where T : IEntity, new()
         {
-            var entity = new T();
-            entity.EntityId = _nextEntityId++;
-            entity.Dimension = this;
+            var entity = new T
+            {
+                EntityId = _nextEntityId++,
+                Dimension = this
+            };
             Entities.Add(entity);
             return entity;
         }

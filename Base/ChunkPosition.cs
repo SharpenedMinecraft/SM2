@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Base
 {
-    public sealed class Vector2
+    public sealed class ChunkPosition
     {
         public int X { get; set; }
 

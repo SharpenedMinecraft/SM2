@@ -25,7 +25,7 @@ namespace Protocol.Latest.Packets
                 (MainHand)NetworkUtils.ReadVarInt(stream));
 
             if (client.IsPerformingLoginSequence)
-                LatestProtocol.QueueLoginSequencePart2(cleint);
+                LatestProtocol.QueueLoginSequencePart2(client);
         }
 
         public Task Write(Stream stream, RemoteClient client)

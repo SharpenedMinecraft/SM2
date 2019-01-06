@@ -25,13 +25,16 @@ namespace Server
         private Task _processTask;
 #pragma warning restore IDE0052 // Remove unread private members
 
-        internal RemoteClient(TcpClient client, IProtocol protocol, CancellationToken token)
+        internal RemoteClient(TcpClient client, IProtocol protocol, MainServer server)
         {
+            Server = server;
             _protocol = protocol;
             _client = client;
             _myCts = new CancellationTokenSource();
-            _cts = CancellationTokenSource.CreateLinkedTokenSource(_myCts.Token, token);
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(_myCts.Token, server.Token);
         }
+
+        public MainServer Server { get; }
 
         public Player Player { get; internal set; }
 
@@ -47,6 +50,7 @@ namespace Server
 
         public void Dispose()
         {
+            Server.RemoveClient(this);
             _cts.Dispose();
             _client.Dispose();
             _myCts.Dispose();
@@ -92,6 +96,8 @@ namespace Server
                         Log.Error(ex, "Exception while Reading");
                     }
                 }
+
+                await Task.Delay(1);
             }
         }
 
@@ -102,13 +108,10 @@ namespace Server
                 try
                 {
                     var info = _processQueue.Take();
-
                     var packet = _protocol.GetPacket(info.Id, false, this);
-
 #if DEBUG
                     Log.Debug($"Processed Packet {packet.GetType().Name} ({packet.Id})");
 #endif
-
                     using (var stream = new MemoryStream(info.Data.ToArray()))
                         await packet.Read(stream, this);
                 }
@@ -147,11 +150,19 @@ namespace Server
                     Log.Debug($"Wrote Packet {packet.GetType().Name} ({packet.Id})");
 #endif
                 }
+                catch (IOException)
+                {
+                    Log.Fatal("IOException, disconnecting");
+                    break;
+                }
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Exception while trying to Write");
                 }
             }
+
+            _myCts.Cancel();
+            Dispose();
         }
     }
 }

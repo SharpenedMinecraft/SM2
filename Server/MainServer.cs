@@ -16,8 +16,8 @@ namespace Server
         private readonly TcpListener _listener;
         private readonly CancellationTokenSource _cts;
         private readonly IProtocol _protocol;
+        private readonly List<RemoteClient> _clients = new List<RemoteClient>();
         private Task _listenerTask;
-        private List<RemoteClient> _clients = new List<RemoteClient>();
 
         public MainServer(IProtocol protocol, IPAddress filter, int port)
         {
@@ -25,12 +25,11 @@ namespace Server
             _listener = new TcpListener(filter, port);
             _cts = new CancellationTokenSource();
             World = new World();
-            World[0] = new Dimension(); // Overworld
-            World[1] = new Dimension(); // Nether
-            World[-1] = new Dimension(); // End
         }
 
         public World World { get; }
+
+        public CancellationToken Token => _cts.Token;
 
         public void Start()
         {
@@ -47,6 +46,9 @@ namespace Server
             _listener.Server.Dispose();
         }
 
+        internal void RemoveClient(RemoteClient client)
+            => _clients.Remove(client);
+
         private async Task Listen()
         {
             while (!_cts.IsCancellationRequested)
@@ -58,13 +60,15 @@ namespace Server
                     {
                         OnGround = true,
                         X = 0,
-                        Y = 0,
+                        Y = 10,
                         Z = 0,
                         Yaw = 0,
                         Pitch = 0
                     });
-                    var remote = new RemoteClient(client, _protocol, _cts.Token);
-                    remote.Player = player;
+                    var remote = new RemoteClient(client, _protocol, this)
+                    {
+                        Player = player
+                    };
                     remote.StartProcessing();
                     _clients.Add(remote);
                     Log.Information("Accepted new Client");

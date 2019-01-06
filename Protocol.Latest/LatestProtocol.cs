@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using Base;
 using Protocol.Latest.Packets;
 using Server;
 
@@ -38,6 +39,19 @@ namespace Protocol.Latest
         internal static void QueueLoginSequencePart2(RemoteClient client)
         {
             client.Write(new PlayerPositionAndLookClientbound());
+
+            var playerChunkPos = client.Player.BlockPosition.ToChunkPosition(out _, out _);
+
+            for (int x = -3; x <= 3; x++)
+            {
+                for (int z = -3; z <= 3; z++)
+                {
+                    var v = playerChunkPos;
+                    v.X += x;
+                    v.Z += z;
+                    client.Write(new ChunkData(client.Player.Dimension[v]));
+                }
+            }
         }
     }
 }

@@ -10,6 +10,8 @@ namespace Base
 
         EntityTransform Transform { get; set; }
 
+        BlockPosition BlockPosition { get; }
+
         EntitySpawnMethod SpawnMethod { get; }
 
         string Name { get; }

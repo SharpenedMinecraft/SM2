@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Base
 {
-    public sealed class EntityTransform
+    public struct EntityTransform
     {
         public double X { get; set; }
 

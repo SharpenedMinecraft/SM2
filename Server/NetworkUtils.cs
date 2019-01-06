@@ -9,6 +9,18 @@ namespace Server
 {
     public static class NetworkUtils
     {
+        public static void WriteArray<T>(Stream stream, T[] val, Action<Stream, T> action)
+        {
+            for (int i = 0; i < val.Length; i++)
+                action(stream, val[i]);
+        }
+
+        public static async ValueTask WriteArray<T>(Stream stream, T[] val, Func<Stream, T, ValueTask> func)
+        {
+            for (int i = 0; i < val.Length; i++)
+                await func(stream, val[i]);
+        }
+
         public static void WriteVarInt(Stream stream, int val)
         {
             var size = 0;
@@ -56,6 +68,13 @@ namespace Server
             await stream.WriteAsync(buff);
         }
 
+        public static async ValueTask WriteULong(Stream stream, ulong val)
+        {
+            Memory<byte> buff = new byte[8];
+            BinaryPrimitives.WriteUInt64BigEndian(buff.Span, val);
+            await stream.WriteAsync(buff);
+        }
+
         public static async ValueTask WriteLong(Stream stream, long val)
         {
             Memory<byte> buff = new byte[8];
@@ -69,16 +88,12 @@ namespace Server
         public static ValueTask WriteFloat(Stream stream, float val)
         {
             var v = BitConverter.SingleToInt32Bits(val);
-            if (BitConverter.IsLittleEndian)
-                v = BinaryPrimitives.ReverseEndianness(v);
             return WriteInt(stream, v);
         }
 
         public static ValueTask WriteDouble(Stream stream, double val)
         {
             var v = BitConverter.DoubleToInt64Bits(val);
-            if (BitConverter.IsLittleEndian)
-                v = BinaryPrimitives.ReverseEndianness(v);
             return WriteLong(stream, v);
         }
 
@@ -142,18 +157,18 @@ namespace Server
             return BinaryPrimitives.ReadInt32BigEndian(buff.Span);
         }
 
-        public static async ValueTask<long> ReadLong(Stream stream)
-        {
-            Memory<byte> buff = new byte[8];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadInt64BigEndian(buff.Span);
-        }
-
         public static async ValueTask<ulong> ReadULong(Stream stream)
         {
             Memory<byte> buff = new byte[8];
             await stream.ReadAsync(buff);
             return BinaryPrimitives.ReadUInt64BigEndian(buff.Span);
+        }
+
+        public static async ValueTask<long> ReadLong(Stream stream)
+        {
+            Memory<byte> buff = new byte[8];
+            await stream.ReadAsync(buff);
+            return BinaryPrimitives.ReadInt64BigEndian(buff.Span);
         }
 
         public static async ValueTask<BlockPosition> ReadBlockPosition(Stream stream)
@@ -174,16 +189,12 @@ namespace Server
         public static async ValueTask<float> ReadFloat(Stream stream)
         {
             var v = await ReadInt(stream);
-            if (BitConverter.IsLittleEndian)
-                v = BinaryPrimitives.ReverseEndianness(v);
             return BitConverter.Int32BitsToSingle(v);
         }
 
         public static async ValueTask<double> ReadDouble(Stream stream)
         {
             var v = await ReadLong(stream);
-            if (BitConverter.IsLittleEndian)
-                v = BinaryPrimitives.ReverseEndianness(v);
             return BitConverter.Int64BitsToDouble(v);
         }
 

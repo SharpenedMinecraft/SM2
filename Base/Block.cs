@@ -1,4 +1,6 @@
-﻿namespace Base
+﻿using System;
+
+namespace Base
 {
     public abstract class Block
     {
@@ -6,6 +8,12 @@
 
         public Chunk Chunk { get; set; }
 
-        public abstract int GetStateId();
+        public abstract ulong MaxStateId { get; }
+
+        public abstract ulong MinStateId { get; }
+
+        public abstract ulong GetStateId();
+
+        public abstract Block Clone();
     }
 }

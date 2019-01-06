@@ -8,6 +8,8 @@ namespace Base
     {
         private readonly Dictionary<int, Dimension> dimensions = new Dictionary<int, Dimension>();
 
+        public static IBlockManager BlockManager { get; set; }
+
         public Dimension Overworld => dimensions[0];
 
         public Dimension End => dimensions[-1];

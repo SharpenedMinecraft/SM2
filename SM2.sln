@@ -15,6 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Protocol.Latest", "Protocol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerExecutable", "ServerExecutable\ServerExecutable.csproj", "{11902BE8-CAD5-4622-A457-B0E576FF05D9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blocks", "Blocks\Blocks.csproj", "{F141A92D-74FE-48AB-8395-5EA78025B035}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldGenerators", "WorldGenerators\WorldGenerators.csproj", "{53423888-0BED-42FE-9773-942F76BD8DF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{11902BE8-CAD5-4622-A457-B0E576FF05D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11902BE8-CAD5-4622-A457-B0E576FF05D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11902BE8-CAD5-4622-A457-B0E576FF05D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F141A92D-74FE-48AB-8395-5EA78025B035}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F141A92D-74FE-48AB-8395-5EA78025B035}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F141A92D-74FE-48AB-8395-5EA78025B035}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F141A92D-74FE-48AB-8395-5EA78025B035}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53423888-0BED-42FE-9773-942F76BD8DF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53423888-0BED-42FE-9773-942F76BD8DF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53423888-0BED-42FE-9773-942F76BD8DF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53423888-0BED-42FE-9773-942F76BD8DF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

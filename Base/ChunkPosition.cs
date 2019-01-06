@@ -4,10 +4,16 @@ using System.Text;
 
 namespace Base
 {
-    public sealed class ChunkPosition
+    public struct ChunkPosition
     {
-        public int X { get; set; }
+        public int X;
 
-        public int Z { get; set; }
+        public int Z;
+
+        public ChunkPosition(int x, int z)
+        {
+            X = x;
+            Z = z;
+        }
     }
 }

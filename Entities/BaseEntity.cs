@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Base;
 using SpecialTypes;
@@ -36,5 +37,12 @@ namespace Entities
         public abstract int? ObjectID { get; }
 
         public EntityTransform Transform { get; set; }
+
+        public BlockPosition BlockPosition => new BlockPosition()
+        {
+            X = (int)Math.Round(Transform.X),
+            Y = (int)Math.Round(Transform.Y),
+            Z = (int)Math.Round(Transform.Z)
+        };
     }
 }

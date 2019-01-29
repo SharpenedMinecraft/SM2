@@ -16,7 +16,7 @@ namespace Protocol.Latest.Packets
 
         public async Task Read(Stream stream, RemoteClient client)
         {
-            client.Player.Transform = new EntityTransform()
+            EntityTransform transform = new EntityTransform()
             {
                 X = await NetworkUtils.ReadDouble(stream),
                 Y = await NetworkUtils.ReadDouble(stream),
@@ -25,6 +25,20 @@ namespace Protocol.Latest.Packets
                 Yaw = await NetworkUtils.ReadFloat(stream),
                 OnGround = NetworkUtils.ReadBool(stream)
             };
+
+            // => Client is confirming the position
+            // for some reason this is never sent?
+            // TODO: Fix transform Confirmation
+            // moved to Write of PlayerPositionAndLookClientbound for now.
+            /*if (client.IsPerformingLoginSequence)
+            {
+                if (transform != client.Player.Transform)
+                    throw new Exception("Wrong Confirmation Transform");
+
+                client.IsPerformingLoginSequence = false;
+            }*/
+
+            client.Player.Transform = transform;
         }
 
         public Task Write(Stream stream, RemoteClient client)

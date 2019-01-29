@@ -19,10 +19,13 @@ namespace Server
         private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>();
         private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>();
 
+        private bool _isPerformingLoginSequence;
+
 #pragma warning disable IDE0052 // Remove unread private members
         private Task _readTask;
         private Task _writeTask;
         private Task _processTask;
+        private Task _keepAliveTask;
 #pragma warning restore IDE0052 // Remove unread private members
 
         internal RemoteClient(TcpClient client, IProtocol protocol, MainServer server)
@@ -34,11 +37,22 @@ namespace Server
             _cts = CancellationTokenSource.CreateLinkedTokenSource(_myCts.Token, server.Token);
         }
 
+        public event EventHandler<IPacket> OnPacketReceived;
+
         public MainServer Server { get; }
 
         public Player Player { get; internal set; }
 
-        public bool IsPerformingLoginSequence { get; set; }
+        public bool IsPerformingLoginSequence
+        {
+            get => _isPerformingLoginSequence;
+            set
+            {
+                _isPerformingLoginSequence = value;
+                LoginSequenceSwitch(value);
+                Console.WriteLine("Switched IsPerformingLoginSequence to " + value);
+            }
+        }
 
         public ConnectionState State { get; set; }
 
@@ -46,6 +60,33 @@ namespace Server
             where T : IPacket
         {
             _writeQueue.Add(packet);
+        }
+
+        public async Task<T> WaitForPacket<T>(Predicate<T> predicate)
+            where T : IPacket
+        {
+            var tcs = new TaskCompletionSource<T>();
+
+            var handler = new EventHandler<IPacket>((s, e) =>
+            {
+                if (e is T v && predicate(v))
+                {
+                    tcs.SetResult(v);
+                }
+            });
+
+            T result;
+            try
+            {
+                OnPacketReceived += handler;
+                result = await tcs.Task;
+            }
+            finally
+            {
+                OnPacketReceived -= handler;
+            }
+
+            return result;
         }
 
         public void Dispose()
@@ -61,6 +102,14 @@ namespace Server
             _readTask = Task.Run(Read);
             _writeTask = Task.Run(Write);
             _processTask = Task.Run(Process);
+        }
+
+        private void LoginSequenceSwitch(bool newValue)
+        {
+            if (newValue == false)
+            {
+                _keepAliveTask = _protocol.GetKeepAliveTask(this);
+            }
         }
 
         private async Task Read()
@@ -114,6 +163,8 @@ namespace Server
 #endif
                     using (var stream = new MemoryStream(info.Data.ToArray()))
                         await packet.Read(stream, this);
+
+                    OnPacketReceived?.Invoke(this, packet);
                 }
                 catch (PacketNotFoundException ex)
                 {

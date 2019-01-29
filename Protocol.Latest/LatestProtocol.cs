@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Base;
 using Protocol.Latest.Packets;
 using Server;
@@ -17,6 +18,8 @@ namespace Protocol.Latest
             .Where(x => typeof(IPacket).IsAssignableFrom(x)).Select(x => (IPacket)Activator.CreateInstance(x))
             .ToLookup(x => x.Id);
 
+        private static readonly Random _random = new Random();
+
         public string GetLabel() => Label;
 
         public int GetProtocolId() => ProtocolID;
@@ -26,6 +29,27 @@ namespace Protocol.Latest
         public IPacket GetPacket(int id, bool clientBound, RemoteClient client)
         {
             return _packets[id].FirstOrDefault(x => x.DesiredState == client.State) ?? throw new PacketNotFoundException(id);
+        }
+
+        public async Task GetKeepAliveTask(RemoteClient client)
+        {
+            while (client != null)
+            {
+                Console.WriteLine("Sending Keep Alive");
+                var id = _random.NextLong();
+                client.Write(new KeepAliveClientbound()
+                {
+                    KeepAliveID = id
+                });
+                var start = DateTime.UtcNow;
+                var packetTask = client.WaitForPacket<KeepAliveServerbound>((packet) => packet.KeepAliveID == id);
+                var timeTask = Task.Delay(30 * 1000);
+                var resTask = await Task.WhenAny(packetTask, timeTask);
+                if (resTask == packetTask)
+                    await Task.Delay(start - start.AddSeconds(30));
+                else
+                    throw new TimeoutException();
+            }
         }
 
         internal static void QueueLoginSequencePart1(RemoteClient client)

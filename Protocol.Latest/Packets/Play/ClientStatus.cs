@@ -19,7 +19,7 @@ namespace Protocol.Latest.Packets
 
             if (actionId == 0)
             {
-                client.IsPerformingLoginSequence = false;
+                // TODO: Respawning
                 return Task.CompletedTask;
             }
 

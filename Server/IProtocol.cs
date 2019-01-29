@@ -1,4 +1,6 @@
-﻿namespace Server
+﻿using System.Threading.Tasks;
+
+namespace Server
 {
     public interface IProtocol
     {
@@ -9,5 +11,7 @@
         string GetLabel();
 
         string GetUserFriendlyVersion();
+
+        Task GetKeepAliveTask(RemoteClient client);
     }
 }

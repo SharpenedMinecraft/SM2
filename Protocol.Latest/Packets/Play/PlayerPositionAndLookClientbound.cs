@@ -28,6 +28,11 @@ namespace Protocol.Latest.Packets
             await NetworkUtils.WriteFloat(stream, client.Player.Transform.Pitch);
             NetworkUtils.WriteByte(stream, 0); // Flags
             NetworkUtils.WriteVarInt(stream, TeleportManager.GenerateId(client.Player));
+
+            if (client.IsPerformingLoginSequence)
+            {
+                client.IsPerformingLoginSequence = false;
+            }
         }
     }
 }

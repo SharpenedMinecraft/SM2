@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerExecutable", "ServerE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blocks", "Blocks\Blocks.csproj", "{F141A92D-74FE-48AB-8395-5EA78025B035}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldGenerators", "WorldGenerators\WorldGenerators.csproj", "{53423888-0BED-42FE-9773-942F76BD8DF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorldGenerators", "WorldGenerators\WorldGenerators.csproj", "{53423888-0BED-42FE-9773-942F76BD8DF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{EF07319B-60B5-41FB-8BFB-8B4AC139E192}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{53423888-0BED-42FE-9773-942F76BD8DF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53423888-0BED-42FE-9773-942F76BD8DF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53423888-0BED-42FE-9773-942F76BD8DF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF07319B-60B5-41FB-8BFB-8B4AC139E192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF07319B-60B5-41FB-8BFB-8B4AC139E192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF07319B-60B5-41FB-8BFB-8B4AC139E192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF07319B-60B5-41FB-8BFB-8B4AC139E192}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

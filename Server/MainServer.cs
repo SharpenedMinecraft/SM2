@@ -24,6 +24,9 @@ namespace Server
             _listener = new TcpListener(filter, port);
             _cts = new CancellationTokenSource();
             World = new World();
+            World.OnDimensionCreated += OnDimensionCreated;
+            foreach (var dim in World.Dimensions)
+                OnDimensionCreated(this, dim);
         }
 
         public List<RemoteClient> Clients { get; private set; } = new List<RemoteClient>();
@@ -49,6 +52,21 @@ namespace Server
 
         internal void RemoveClient(RemoteClient client)
             => Clients.Remove(client);
+
+        private void OnDimensionCreated(object sender, Dimension e)
+        {
+            foreach (var system in _protocol.Systems)
+            {
+                Task.Run(async () =>
+                {
+                    while (!_cts.IsCancellationRequested)
+                    {
+                        await system.Tick(e, this);
+                        await Task.Delay((int)((1f / system.TimesPerSecond) * 1000));
+                    }
+                });
+            }
+        }
 
         private async Task Listen()
         {

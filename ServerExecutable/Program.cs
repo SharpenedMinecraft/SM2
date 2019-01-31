@@ -30,9 +30,9 @@ namespace ServerExecutable
             using (var server = new MainServer(new LatestProtocol(), IPAddress.Any, 25565))
             {
                 Log.Information("Loading World...");
-                server.World[-1] = PrepareNether();
-                server.World[0] = PrepareOverworld();
-                server.World[1] = PrepareEnd();
+                server.World.AttachDimension(PrepareNether(), -1);
+                server.World.AttachDimension(PrepareOverworld(), 0);
+                server.World.AttachDimension(PrepareEnd(), 1);
                 Log.Information("Loaded World!");
 
                 Log.Information("Welcome! Starting Server!");

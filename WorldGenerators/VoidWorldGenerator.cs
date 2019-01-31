@@ -19,6 +19,9 @@ namespace WorldGenerators
                 }
             }
 
+            foreach (var section in chunk.Sections)
+                section.DirtyBlocks.Clear();
+
             return chunk;
         }
     }

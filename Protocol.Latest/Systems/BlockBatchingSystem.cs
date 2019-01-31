@@ -29,6 +29,9 @@ namespace Protocol.Latest.Systems
 
             foreach (var chunk in dimension.Chunks)
             {
+                if (!chunk.Sections.Any(x => x.DirtyBlocks.Count > 0))
+                    continue;
+
                 var dirtyBlocks = chunk.Sections.SelectMany((section, i)
                     => section.DirtyBlocks.Select((block)
                         => Tuple.Create(block, i)));

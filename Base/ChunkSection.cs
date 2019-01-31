@@ -7,7 +7,7 @@ namespace Base
     {
         private readonly int[,,] _blocks = new int[16, 16, 16];
 
-        public List<DirtyBlockInfo> DirtyBlocks { get; }
+        public List<DirtyBlockInfo> DirtyBlocks { get; } = new List<DirtyBlockInfo>();
 
         public Block this[int x, int y, int z]
         {

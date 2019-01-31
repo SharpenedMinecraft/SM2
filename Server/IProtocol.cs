@@ -5,6 +5,8 @@ namespace Server
 {
     public interface IProtocol
     {
+        ITickSystem[] Systems { get; }
+
         IPacket GetPacket(int id, bool clientBound, RemoteClient client);
 
         int GetProtocolId();

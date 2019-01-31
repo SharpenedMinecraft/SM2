@@ -110,7 +110,7 @@ namespace Protocol.Latest.Packets
 
                         // C# Still limits the Byte Size to uint if this is a uint,
                         // even after byteshifting into a ulong
-                        ulong value = block.GetStateId();
+                        ulong value = (ulong)block.GetStateId();
                         value &= individualValueMask;
 
                         dataArray[startLong] |= value << startOffset;

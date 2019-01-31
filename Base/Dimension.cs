@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Base
 {
@@ -27,17 +28,13 @@ namespace Base
 
         public BlockPosition SpawnPosition { get; set; }
 
+        public ICollection<Chunk> Chunks => _chunks.Values;
+
         public Chunk this[ChunkPosition position]
         {
             get
             {
-                return _chunks.GetOrAdd(position, (pos) =>
-                {
-                    var newChunk = _generator.GenerateChunkAt(pos);
-                    newChunk.Dimension = this;
-                    newChunk.Position = pos;
-                    return newChunk;
-                });
+                return _chunks.GetOrAdd(position, GenerateChunk);
             }
 
             set
@@ -49,7 +46,7 @@ namespace Base
         }
 
         public T CreateEntity<T>(EntityTransform transform)
-            where T : IEntity, new()
+                where T : IEntity, new()
         {
             var entity = new T
             {
@@ -59,6 +56,14 @@ namespace Base
             };
             Entities.Add(entity);
             return entity;
+        }
+
+        private Chunk GenerateChunk(ChunkPosition position)
+        {
+            var newChunk = _generator.GenerateChunkAt(position);
+            newChunk.Dimension = this;
+            newChunk.Position = position;
+            return newChunk;
         }
     }
 }

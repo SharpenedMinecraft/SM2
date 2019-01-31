@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Base;
 using Protocol.Latest.Packets;
+using Protocol.Latest.Systems;
 using Server;
 
 namespace Protocol.Latest
@@ -19,6 +20,11 @@ namespace Protocol.Latest
             .ToLookup(x => x.Id);
 
         private static readonly Random _random = new Random();
+
+        public ITickSystem[] Systems { get; } = new ITickSystem[]
+            {
+                new BlockBatchingSystem()
+            };
 
         public string GetLabel() => Label;
 
@@ -52,6 +58,9 @@ namespace Protocol.Latest
             }
         }
 
+        public IPacket GetLoadChunkPacket(Chunk c)
+            => new ChunkData(c);
+
         internal static void QueueLoginSequencePart1(RemoteClient client)
         {
             client.Write(new JoinGame());
@@ -73,7 +82,7 @@ namespace Protocol.Latest
                     var v = playerChunkPos;
                     v.X += x;
                     v.Z += z;
-                    client.Write(new ChunkData(client.Player.Dimension[v]));
+                    client.LoadChunk(v);
                 }
             }
         }

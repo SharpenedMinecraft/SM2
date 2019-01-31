@@ -2,6 +2,6 @@
 {
     public interface IBlockManager
     {
-        Block GetBlock(ulong stateID);
+        Block GetBlock(int stateID);
     }
 }

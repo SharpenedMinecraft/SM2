@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Base;
 
 namespace Server
 {
@@ -13,5 +14,7 @@ namespace Server
         string GetUserFriendlyVersion();
 
         Task GetKeepAliveTask(RemoteClient client);
+
+        IPacket GetLoadChunkPacket(Chunk c);
     }
 }

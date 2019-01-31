@@ -18,13 +18,13 @@ namespace Blocks
                 return new Range() { Min = instance.MinStateId, Max = instance.MaxStateId };
             }), new RangeComparer());
 
-        public Block GetBlock(ulong stateID)
+        public Block GetBlock(int stateID)
         {
             var index = _blocks.Keys.BinarySearch(stateID, IsInRange);
             return _blocks.Values[index].Clone();
         }
 
-        private int IsInRange(ulong value, Range range)
+        private int IsInRange(int value, Range range)
         {
             if (value < range.Min)
                 return -1;
@@ -35,16 +35,16 @@ namespace Blocks
 
         private struct Range
         {
-            public ulong Min;
+            public int Min;
 
-            public ulong Max;
+            public int Max;
         }
 
         private class RangeComparer : Comparer<Range>
         {
-            private static readonly Comparer<ulong> _ulongComparer = Comparer<ulong>.Default;
+            private static readonly Comparer<int> _intComparer = Comparer<int>.Default;
 
-            public override int Compare(Range x, Range y) => _ulongComparer.Compare(x.Max, y.Min);
+            public override int Compare(Range x, Range y) => _intComparer.Compare(x.Max, y.Min);
         }
     }
 }

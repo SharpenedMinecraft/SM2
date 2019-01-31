@@ -8,11 +8,11 @@ namespace Base
 
         public Chunk Chunk { get; set; }
 
-        public abstract ulong MaxStateId { get; }
+        public abstract int MaxStateId { get; }
 
-        public abstract ulong MinStateId { get; }
+        public abstract int MinStateId { get; }
 
-        public abstract ulong GetStateId();
+        public abstract int GetStateId();
 
         public abstract Block Clone();
     }

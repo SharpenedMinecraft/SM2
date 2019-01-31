@@ -16,7 +16,6 @@ namespace Server
         private readonly TcpListener _listener;
         private readonly CancellationTokenSource _cts;
         private readonly IProtocol _protocol;
-        private readonly List<RemoteClient> _clients = new List<RemoteClient>();
         private Task _listenerTask;
 
         public MainServer(IProtocol protocol, IPAddress filter, int port)
@@ -27,13 +26,15 @@ namespace Server
             World = new World();
         }
 
+        public List<RemoteClient> Clients { get; private set; } = new List<RemoteClient>();
+
         public World World { get; }
 
         public CancellationToken Token => _cts.Token;
 
         public void Start()
         {
-            _clients.Clear();
+            Clients.Clear();
             _listener.Start();
             _listenerTask = Task.Run(Listen);
         }
@@ -47,7 +48,7 @@ namespace Server
         }
 
         internal void RemoveClient(RemoteClient client)
-            => _clients.Remove(client);
+            => Clients.Remove(client);
 
         private async Task Listen()
         {
@@ -70,7 +71,7 @@ namespace Server
                         Player = player
                     };
                     remote.StartProcessing();
-                    _clients.Add(remote);
+                    Clients.Add(remote);
                     Log.Information("Accepted new Client");
                 }
                 catch (Exception ex)

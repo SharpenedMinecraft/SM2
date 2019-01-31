@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Base;
 using Entities;
 using Serilog;
 
@@ -31,6 +32,7 @@ namespace Server
         internal RemoteClient(TcpClient client, IProtocol protocol, MainServer server)
         {
             Server = server;
+            LoadedChunks = new BlockingCollection<Chunk>();
             _protocol = protocol;
             _client = client;
             _myCts = new CancellationTokenSource();
@@ -41,7 +43,11 @@ namespace Server
 
         public MainServer Server { get; }
 
+        public BlockingCollection<Chunk> LoadedChunks { get; set; }
+
         public Player Player { get; internal set; }
+
+        public ConnectionState State { get; set; }
 
         public bool IsPerformingLoginSequence
         {
@@ -54,13 +60,27 @@ namespace Server
             }
         }
 
-        public ConnectionState State { get; set; }
+        public Chunk LoadChunk(ChunkPosition position)
+        {
+            var chunk = Player.Dimension[position];
+            var packet = _protocol.GetLoadChunkPacket(chunk);
+            Write(packet);
+            LoadedChunks.Add(chunk);
+            return chunk;
+        }
+
+        /*
+            TODO: Unload chunk
+        */
 
         public void Write<T>(T packet)
             where T : IPacket
         {
             _writeQueue.Add(packet);
         }
+
+        public void Write(IPacket packet)
+            => _writeQueue.Add(packet);
 
         public async Task<T> WaitForPacket<T>(Predicate<T> predicate)
             where T : IPacket
@@ -92,6 +112,9 @@ namespace Server
         public void Dispose()
         {
             Server.RemoveClient(this);
+            _processQueue?.Dispose();
+            _writeQueue?.Dispose();
+            LoadedChunks?.Dispose();
             _cts.Dispose();
             _client.Dispose();
             _myCts.Dispose();

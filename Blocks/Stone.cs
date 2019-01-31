@@ -7,9 +7,9 @@ namespace Blocks
 {
     public sealed class Stone : Block
     {
-        public override ulong MaxStateId => 1;
+        public override int MaxStateId => 1;
 
-        public override ulong MinStateId => 1;
+        public override int MinStateId => 1;
 
         public override Block Clone()
         {
@@ -20,6 +20,6 @@ namespace Blocks
             };
         }
 
-        public override ulong GetStateId() => 1;
+        public override int GetStateId() => 1;
     }
 }

@@ -45,6 +45,12 @@ namespace Base
             }
         }
 
+        public Block this[BlockPosition position]
+        {
+            get => this[position.ToChunkPosition(out int sectionY, out BlockPosition relPos)][sectionY][relPos];
+            set => this[position.ToChunkPosition(out int sectionY, out BlockPosition relPos)][sectionY][relPos] = value;
+        }
+
         public T CreateEntity<T>(EntityTransform transform)
                 where T : IEntity, new()
         {

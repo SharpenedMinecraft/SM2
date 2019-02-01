@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Blocks\Blocks.csproj" />
     <ProjectReference Include="..\Protocol.Latest\Protocol.Latest.csproj" />
     <ProjectReference Include="..\Server\Server.csproj" />
     <ProjectReference Include="..\WorldGenerators\WorldGenerators.csproj" />

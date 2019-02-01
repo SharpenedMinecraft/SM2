@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Base", "Base\Base.csproj", "{23D77AFC-1115-4266-87A2-C6DB646BBB91}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Entities", "Entities\Entities.csproj", "{47789D0C-FF91-4E3B-9E42-2354667C12F8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpecialTypes", "SpecialTypes\SpecialTypes.csproj", "{5D2B969A-2B63-4DF4-891A-ABC99A3FC546}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{A86194CD-E0ED-4424-90D4-C6367253AA7E}"
@@ -15,9 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Protocol.Latest", "Protocol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerExecutable", "ServerExecutable\ServerExecutable.csproj", "{11902BE8-CAD5-4622-A457-B0E576FF05D9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blocks", "Blocks\Blocks.csproj", "{F141A92D-74FE-48AB-8395-5EA78025B035}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorldGenerators", "WorldGenerators\WorldGenerators.csproj", "{53423888-0BED-42FE-9773-942F76BD8DF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldGenerators", "WorldGenerators\WorldGenerators.csproj", "{53423888-0BED-42FE-9773-942F76BD8DF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftImplementations", "MinecraftImplementations\MinecraftImplementations.csproj", "{EE2EEFC3-BA73-42A4-B777-F12BE55AFB6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{23D77AFC-1115-4266-87A2-C6DB646BBB91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23D77AFC-1115-4266-87A2-C6DB646BBB91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23D77AFC-1115-4266-87A2-C6DB646BBB91}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47789D0C-FF91-4E3B-9E42-2354667C12F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47789D0C-FF91-4E3B-9E42-2354667C12F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47789D0C-FF91-4E3B-9E42-2354667C12F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47789D0C-FF91-4E3B-9E42-2354667C12F8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5D2B969A-2B63-4DF4-891A-ABC99A3FC546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D2B969A-2B63-4DF4-891A-ABC99A3FC546}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D2B969A-2B63-4DF4-891A-ABC99A3FC546}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -49,14 +43,14 @@ Global
 		{11902BE8-CAD5-4622-A457-B0E576FF05D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11902BE8-CAD5-4622-A457-B0E576FF05D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11902BE8-CAD5-4622-A457-B0E576FF05D9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F141A92D-74FE-48AB-8395-5EA78025B035}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F141A92D-74FE-48AB-8395-5EA78025B035}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F141A92D-74FE-48AB-8395-5EA78025B035}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F141A92D-74FE-48AB-8395-5EA78025B035}.Release|Any CPU.Build.0 = Release|Any CPU
 		{53423888-0BED-42FE-9773-942F76BD8DF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{53423888-0BED-42FE-9773-942F76BD8DF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53423888-0BED-42FE-9773-942F76BD8DF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53423888-0BED-42FE-9773-942F76BD8DF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE2EEFC3-BA73-42A4-B777-F12BE55AFB6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE2EEFC3-BA73-42A4-B777-F12BE55AFB6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE2EEFC3-BA73-42A4-B777-F12BE55AFB6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE2EEFC3-BA73-42A4-B777-F12BE55AFB6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -15,15 +15,31 @@ namespace Base
             set
             {
                 var newState = value.GetStateId();
-                if (newState == _blocks[x, y, z])
-                    return;
-                DirtyBlocks.Add(new DirtyBlockInfo()
-                {
-                    NewState = newState,
-                    Position = new BlockPosition(x, y, z)
-                });
-                _blocks[x, y, z] = newState;
+                SetStateId(x, y, z, newState);
             }
+        }
+
+        public Block this[BlockPosition pos]
+        {
+            get => this[pos.X, pos.Y, pos.Z];
+            set => this[pos.X, pos.Y, pos.Z] = value;
+        }
+
+        public int GetStateId(int x, int y, int z)
+        {
+            return _blocks[x, y, z];
+        }
+
+        public void SetStateId(int x, int y, int z, int newState)
+        {
+            if (newState == _blocks[x, y, z])
+                return;
+            DirtyBlocks.Add(new DirtyBlockInfo()
+            {
+                NewState = newState,
+                Position = new BlockPosition(x, y, z)
+            });
+            _blocks[x, y, z] = newState;
         }
 
         public byte GetBlockLight(int x, int y, int z)

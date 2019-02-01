@@ -16,7 +16,7 @@ namespace Protocol.Latest.Packets
 
         public async Task Read(Stream stream, RemoteClient client)
         {
-            EntityTransform transform = new EntityTransform()
+            var transform = new EntityTransform()
             {
                 X = await NetworkUtils.ReadDouble(stream),
                 Y = await NetworkUtils.ReadDouble(stream),

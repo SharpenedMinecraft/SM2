@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
-  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Items\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Base\Base.csproj" />

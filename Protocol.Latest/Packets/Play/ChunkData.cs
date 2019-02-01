@@ -106,11 +106,9 @@ namespace Protocol.Latest.Packets
                         int startOffset = (blockNumber * bitsPerBlock) % 64;
                         int endLong = (((blockNumber + 1) * bitsPerBlock) - 1) / 64;
 
-                        var block = section[x, y, z];
-
                         // C# Still limits the Byte Size to uint if this is a uint,
                         // even after byteshifting into a ulong
-                        ulong value = (ulong)block.GetStateId();
+                        ulong value = (ulong)section.GetStateId(x, y, z);
                         value &= individualValueMask;
 
                         dataArray[startLong] |= value << startOffset;

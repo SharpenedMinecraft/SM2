@@ -15,7 +15,7 @@ namespace WorldGenerators
             {
                 for (int z = 0; z < 16; z++)
                 {
-                    chunk[0][x, 0, z] = new Stone();
+                    chunk[0][x, 0, z] = new StoneBlock();
                 }
             }
 

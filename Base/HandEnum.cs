@@ -4,7 +4,9 @@ using System.Text;
 
 namespace Base
 {
-    public interface IItem
+    public enum HandEnum : byte
     {
+        Main = 0,
+        Off = 1
     }
 }

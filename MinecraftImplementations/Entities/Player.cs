@@ -11,6 +11,7 @@ namespace Entities
         [Flags]
         public enum DisplayedSkinPartsFlags : byte
         {
+            None = 0x00,
             Cape = 0x01,
             Jacket = 0x02,
             LeftSleeve = 0x04,
@@ -23,19 +24,18 @@ namespace Entities
         [Flags]
         public enum Ability : byte
         {
+            None = 0x00,
             Invulnerable = 0x01,
             Flying = 0x02,
             AllowFlying = 0x04,
             CreativeMode = 0x08
         }
 
-        // see https://wiki.vg/images/1/13/Inventory-slots.png
-        // and https://gist.github.com/ddevault/459a1691c3dd751db160 (mappings)
-        public IItem[] Inventory { get; set; } = new IItem[46];
+        public PlayerInventory Inventory { get; set; } = new PlayerInventory();
 
         public Ability Abilities { get; set; } = Ability.AllowFlying | Ability.Invulnerable | Ability.Flying | Ability.CreativeMode;
 
-        public bool IsCreativeMode => Abilities.HasFlag(Ability.CreativeMode);
+        public bool IsCreativeMode => (Abilities & Ability.CreativeMode) != 0;
 
         public override EntitySpawnMethod SpawnMethod => EntitySpawnMethod.Special;
 

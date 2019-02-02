@@ -5,21 +5,21 @@ using Base;
 
 namespace Blocks
 {
-    public sealed class Stone : Block
+    public sealed class AirBlock : Block
     {
-        public override int MaxStateId => 1;
+        public override int MaxStateId => 0;
 
-        public override int MinStateId => 1;
+        public override int MinStateId => 0;
 
         public override Block Clone()
         {
-            return new Stone()
+            return new AirBlock()
             {
                 Chunk = Chunk,
                 Position = Position
             };
         }
 
-        public override int GetStateId() => 1;
+        public override int GetStateId() => 0;
     }
 }

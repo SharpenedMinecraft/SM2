@@ -42,7 +42,7 @@ namespace Protocol.Latest.Systems
                         (chunk.Position.X * 16) + dirtyBlock.Position.X,
                         (section * 16) + dirtyBlock.Position.Y,
                         (chunk.Position.Z * 16) + dirtyBlock.Position.Z);
-                    groups.FirstOrDefault(x => x.Key == chunk)?.Broadcast(new BlockChangePacket()
+                    groups.FirstOrDefault(x => x.Key == chunk)?.Broadcast(new BlockChange()
                     {
                         GlobalPosition = pos,
                         NewState = dirtyBlock.NewState

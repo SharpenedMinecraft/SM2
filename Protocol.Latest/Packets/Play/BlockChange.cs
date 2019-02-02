@@ -6,7 +6,7 @@ using Server;
 
 namespace Protocol.Latest.Packets
 {
-    public sealed class BlockChangePacket : IPacket
+    public sealed class BlockChange : IPacket
     {
         public int Id => 0x0B;
 

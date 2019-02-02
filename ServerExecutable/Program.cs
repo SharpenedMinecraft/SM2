@@ -12,9 +12,11 @@ using WorldGenerators;
 
 namespace ServerExecutable
 {
-    public class Program
+    public static class Program
     {
+#pragma warning disable RCS1163 // Unused parameter.
         public static async Task Main(string[] args)
+#pragma warning restore RCS1163 // Unused parameter.
         {
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
@@ -38,7 +40,7 @@ namespace ServerExecutable
                 Log.Information("Welcome! Starting Server!");
 
                 server.Start();
-                await Task.Delay(-1);
+                await Task.Delay(-1).ConfigureAwait(false);
             }
         }
 

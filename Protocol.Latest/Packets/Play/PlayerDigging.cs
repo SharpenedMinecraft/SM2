@@ -10,7 +10,7 @@ namespace Protocol.Latest.Packets
 {
     public sealed class PlayerDigging : IPacket
     {
-        private static readonly Dictionary<Player, bool> IsDigging = new Dictionary<Player, bool>();
+        public static Dictionary<Player, bool> IsDigging { get; } = new Dictionary<Player, bool>();
 
         public int Id => 0x18;
 

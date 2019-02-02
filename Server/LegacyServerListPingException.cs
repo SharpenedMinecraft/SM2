@@ -10,6 +10,21 @@ namespace Server
         {
         }
 
+        public LegacyServerListPingException(string message)
+            : base(message)
+        {
+        }
+
+        public LegacyServerListPingException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+        public LegacyServerListPingException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+
         public override string Message => "A Legacy Server List Ping (1.6 and below) has been attempted. This might be because of fallback behaviour, or because of an very old Client.";
     }
 }

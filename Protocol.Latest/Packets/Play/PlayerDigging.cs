@@ -52,7 +52,7 @@ namespace Protocol.Latest.Packets
                     if (!shouldBreakBlock)
                         throw new Exception("Player " + client.Player + " tried to break block without Starting Breaking first");
 
-                    client.Player.Dimension[position].OnDigging(face, client.Player);
+                    client.Player.Dimension[position].Digging(face, client.Player);
                     break;
 
                 // TODO: Implement others, see https://wiki.vg/Protocol#Player_Digging

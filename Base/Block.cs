@@ -16,10 +16,13 @@ namespace Base
 
         public abstract Block Clone();
 
-        public virtual void OnDigging(BlockFace face, IEntity digger)
+        public virtual void Digging(BlockFace face, IEntity entity)
         {
             Position.ToChunkPosition(out int sectionY, out BlockPosition relPos);
             Chunk[sectionY].SetStateId(relPos.X, relPos.Y, relPos.Z, 0);
         }
+
+        public virtual void Action(IEntity entity, byte actionID, byte actionParam)
+        { }
     }
 }

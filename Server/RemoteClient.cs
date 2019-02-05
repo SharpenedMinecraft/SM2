@@ -120,6 +120,7 @@ namespace Server
 
         public void Dispose()
         {
+            Log.Fatal($"Disposal of RemoteClient (which owns {Player}) was requested");
             Server.RemoveClient(this);
             _processQueue?.Dispose();
             _writeQueue?.Dispose();
@@ -172,6 +173,13 @@ namespace Server
                             }
                         }
                     }
+                    catch (IOException ex)
+                    {
+                        // EndOfStream etc.
+                        Log.Error(ex, "Exception while Reading");
+                        Dispose();
+                        return;
+                    }
                     catch (Exception ex)
                     {
                         Log.Error(ex, "Exception while Reading");
@@ -179,6 +187,11 @@ namespace Server
                 }
 
                 await Task.Delay(1).ConfigureAwait(false);
+            }
+
+            if (!_cts.IsCancellationRequested)
+            {
+                Dispose();
             }
         }
 
@@ -192,7 +205,14 @@ namespace Server
                     {
                         var packet = _protocol.GetPacket(info.Id, false, this);
                         using (var stream = new MemoryStream(info.Data.ToArray()))
+                        {
                             await packet.Read(stream, this);
+                            if (stream.Position != stream.Length)
+                            {
+                                int leftOver = (int)(stream.Length - stream.Position);
+                                await stream.ReadAsync(new byte[leftOver], 0, leftOver);
+                            }
+                        }
 
                         OnPacketReceived?.Invoke(this, packet);
 #if DEBUG

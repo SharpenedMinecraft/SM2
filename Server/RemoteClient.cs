@@ -17,10 +17,11 @@ namespace Server
         private readonly TcpClient _client;
         private readonly CancellationTokenSource _cts;
         private readonly CancellationTokenSource _myCts;
-        private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>();
-        private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>();
+        private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>(new ConcurrentQueue<IPacket>());
+        private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>(new ConcurrentQueue<PacketInfo>());
 
         private bool _isPerformingLoginSequence;
+        private ConnectionState state;
 
 #pragma warning disable IDE0052 // Remove unread private members
         private Task _readTask;
@@ -47,7 +48,15 @@ namespace Server
 
         public Player Player { get; internal set; }
 
-        public ConnectionState State { get; set; }
+        public ConnectionState State
+        {
+            get => state;
+            set
+            {
+                state = value;
+                Log.Debug("Switched to State " + Enum.GetName(typeof(ConnectionState), value));
+            }
+        }
 
         public bool IsPerformingLoginSequence
         {
@@ -56,7 +65,7 @@ namespace Server
             {
                 _isPerformingLoginSequence = value;
                 LoginSequenceSwitch(value);
-                Console.WriteLine("Switched IsPerformingLoginSequence to " + value);
+                Log.Debug("Switched IsPerformingLoginSequence to " + value);
             }
         }
 
@@ -87,7 +96,7 @@ namespace Server
         {
             var tcs = new TaskCompletionSource<T>();
 
-            var handler = new EventHandler<IPacket>((s, e) =>
+            var handler = new EventHandler<IPacket>((_, e) =>
             {
                 if (e is T v && predicate(v))
                 {
@@ -129,7 +138,7 @@ namespace Server
 
         private void LoginSequenceSwitch(bool newValue)
         {
-            if (newValue == false)
+            if (!newValue)
             {
                 _keepAliveTask = _protocol.GetKeepAliveTask(this);
             }
@@ -169,7 +178,7 @@ namespace Server
                     }
                 }
 
-                await Task.Delay(1);
+                await Task.Delay(1).ConfigureAwait(false);
             }
         }
 
@@ -177,31 +186,34 @@ namespace Server
         {
             while (!_cts.IsCancellationRequested)
             {
-                try
+                foreach (var info in _processQueue.GetConsumingEnumerable(_cts.Token))
                 {
-                    var info = _processQueue.Take();
-                    var packet = _protocol.GetPacket(info.Id, false, this);
-#if DEBUG
-                    Log.Debug($"Processed Packet {packet.GetType().Name} ({packet.Id})");
-#endif
-                    using (var stream = new MemoryStream(info.Data.ToArray()))
-                        await packet.Read(stream, this);
+                    try
+                    {
+                        var packet = _protocol.GetPacket(info.Id, false, this);
+                        using (var stream = new MemoryStream(info.Data.ToArray()))
+                            await packet.Read(stream, this);
 
-                    OnPacketReceived?.Invoke(this, packet);
-                }
-                catch (PacketNotFoundException ex)
-                {
-                    Log.Warning(ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception occured while Processing");
+                        OnPacketReceived?.Invoke(this, packet);
+#if DEBUG
+                        Log.Debug($"Processed Packet {packet.GetType().Name} ({packet.Id})");
+#endif
+                    }
+                    catch (PacketNotFoundException ex)
+                    {
+                        Log.Warning(ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Exception occured while Processing");
+                    }
                 }
             }
         }
 
         private async Task Write()
         {
+            var clientStream = _client.GetStream();
             while (!_cts.IsCancellationRequested)
             {
                 var packet = _writeQueue.Take();
@@ -217,7 +229,7 @@ namespace Server
                             stream.Position = 0;
                             await stream.CopyToAsync(stream2);
                             stream2.Position = 0;
-                            await stream2.CopyToAsync(_client.GetStream());
+                            await stream2.CopyToAsync(clientStream);
                         }
                     }
 #if DEBUG

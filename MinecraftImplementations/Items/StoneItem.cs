@@ -4,7 +4,7 @@ using System.Text;
 using Base;
 using Blocks;
 
-namespace MinecraftImplementations.Items
+namespace Items
 {
     public sealed class StoneItem : Item
     {

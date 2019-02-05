@@ -52,9 +52,14 @@ namespace Protocol.Latest
                 var timeTask = Task.Delay(30 * 1000);
                 var resTask = await Task.WhenAny(packetTask, timeTask);
                 if (resTask == packetTask)
-                    await Task.Delay(start - start.AddSeconds(30));
+                {
+                    // technically 20, but 15 to be safe (also cause debugging and shit)
+                    await Task.Delay(start - start.AddSeconds(15));
+                }
                 else
+                {
                     throw new TimeoutException();
+                }
             }
         }
 

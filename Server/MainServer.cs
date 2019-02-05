@@ -29,7 +29,7 @@ namespace Server
                 OnDimensionCreated(this, dim);
         }
 
-        public List<RemoteClient> Clients { get; private set; } = new List<RemoteClient>();
+        public List<RemoteClient> Clients { get; } = new List<RemoteClient>();
 
         public World World { get; }
 
@@ -61,8 +61,15 @@ namespace Server
                 {
                     while (!_cts.IsCancellationRequested)
                     {
-                        await system.Tick(e, this);
-                        await Task.Delay((int)((1f / system.TimesPerSecond) * 1000));
+                        try
+                        {
+                            await system.Tick(e, this);
+                            await Task.Delay((int)((1f / system.TimesPerSecond) * 1000));
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error($"System {system.Name} threw Exception: \n{ex.Message}");
+                        }
                     }
                 });
             }

@@ -14,9 +14,11 @@ namespace Blocks
             .GetTypes().Where(type => typeof(Block).IsAssignableFrom(type))
             .Select(type => (Block)Activator.CreateInstance(type))
             .ToDictionary(instance =>
-            {
-                return new Range() { Min = instance.MinStateId, Max = instance.MaxStateId };
-            }), new RangeComparer());
+                new Range()
+                {
+                    Min = instance.MinStateId,
+                    Max = instance.MaxStateId
+                }), new RangeComparer());
 
         public Block GetBlock(int stateID)
         {

@@ -30,12 +30,12 @@ namespace Server
                 if (size > 5)
                     throw new IOException("VarInt too long, its just, i can't handle that");
 
-                stream.WriteByte((byte)(v & 0x7F | 0x80));
+                WriteByte(stream, (byte)(v & 0x7F | 0x80));
                 v = (int)(((uint)v) >> 7);
                 size++;
             }
 
-            stream.WriteByte((byte)v);
+            WriteByte(stream, (byte)v);
         }
 
         public static async ValueTask WriteString(Stream stream, string val)
@@ -102,7 +102,7 @@ namespace Server
             var val = 0;
             var size = 0;
             int readData;
-            while (((readData = stream.ReadByte()) & 0x80) == 0x80)
+            while (((readData = ReadByte(stream)) & 0x80) == 0x80)
             {
                 if (readData == -1)
                     throw new EndOfStreamException();
@@ -203,7 +203,7 @@ namespace Server
             var val = 0;
             var size = 0;
             int readData;
-            while (((readData = stream.ReadByte()) & 0x80) == 0x80)
+            while (((readData = ReadByte(stream)) & 0x80) == 0x80)
             {
                 if (readData == -1)
                     throw new EndOfStreamException();

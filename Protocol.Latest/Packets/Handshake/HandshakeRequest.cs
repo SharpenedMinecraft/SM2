@@ -22,7 +22,7 @@ namespace Protocol.Latest.Packets
             var protocolID = NetworkUtils.ReadVarInt(stream);
             if (protocolID != LatestProtocol.ProtocolID)
             {
-                Log.Warning("Unkown Protocol ID " + protocolID);
+                throw new Exception("Unkown Protocol ID " + protocolID);
             }
 
             var usedServerAddress = NetworkUtils.ReadString(stream);

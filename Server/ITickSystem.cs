@@ -10,6 +10,8 @@ namespace Server
     {
         float TimesPerSecond { get; }
 
+        string Name { get; }
+
         Task Tick(Dimension dimension, MainServer server);
     }
 }

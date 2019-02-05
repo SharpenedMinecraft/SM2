@@ -13,6 +13,8 @@ namespace Protocol.Latest.Systems
     // Or should it go into a new Project?
     public class BlockBatchingSystem : ITickSystem
     {
+        public string Name => "Block Batching System";
+
         public float TimesPerSecond => 20f;
 
         public Task Tick(Dimension dimension, MainServer server)

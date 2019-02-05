@@ -37,8 +37,7 @@ namespace Protocol.Latest.Packets
 
         public async Task Write(Stream stream, RemoteClient client)
         {
-            Log.Debug($"Writing ChunkData {_chunk.Position.X}, {_chunk.Position.Z}");
-
+            // Log.Debug($"Writing ChunkData {_chunk.Position.X}, {_chunk.Position.Z}");
             await NetworkUtils.WriteInt(stream, _chunk.Position.X);
             await NetworkUtils.WriteInt(stream, _chunk.Position.Z);
             NetworkUtils.WriteBool(stream, true);
@@ -51,7 +50,7 @@ namespace Protocol.Latest.Packets
                     var v = _chunk[sectionY];
                     if (!v.IsEmpty())
                     {
-                        Log.Debug("Writing Section " + sectionY);
+                        // Log.Debug("Writing Section " + sectionY);
 
                         // Mask
                         mask |= 1 << sectionY;
@@ -121,7 +120,7 @@ namespace Protocol.Latest.Packets
                 }
             }
 
-            Log.Debug($"Data Array was {dataArray.Length}/{dataLength} long");
+            // Log.Debug($"Data Array was {dataArray.Length}/{dataLength} long");
             NetworkUtils.WriteVarInt(stream, dataLength);
             await NetworkUtils.WriteArray(stream, dataArray, NetworkUtils.WriteULong);
 

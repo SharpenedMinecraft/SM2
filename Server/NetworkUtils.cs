@@ -9,6 +9,9 @@ namespace Server
 {
     public static class NetworkUtils
     {
+        [ThreadStatic]
+        private static byte[] _oneByteArray;
+
         public static void WriteArray<T>(Stream stream, T[] val, Action<Stream, T> action)
         {
             for (int i = 0; i < val.Length; i++)
@@ -137,10 +140,12 @@ namespace Server
 
         public static byte ReadByte(Stream stream)
         {
-            var i = stream.ReadByte();
-            if (i == -1)
+            if (_oneByteArray is null)
+                _oneByteArray = new byte[1];
+
+            if (stream.Read(_oneByteArray, 0, 1) != 1)
                 throw new EndOfStreamException();
-            return (byte)i;
+            return _oneByteArray[0];
         }
 
         public static async ValueTask<ushort> ReadUShort(Stream stream)

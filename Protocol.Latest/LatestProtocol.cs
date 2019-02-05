@@ -49,7 +49,7 @@ namespace Protocol.Latest
                 });
                 var start = DateTime.UtcNow;
                 var packetTask = client.WaitForPacket<KeepAliveServerbound>((packet) => packet.KeepAliveID == id);
-                var timeTask = Task.Delay(30 * 1000);
+                var timeTask = Task.Delay(35 * 1000); // 5 seconds extra time
                 var resTask = await Task.WhenAny(packetTask, timeTask);
                 if (resTask == packetTask)
                 {

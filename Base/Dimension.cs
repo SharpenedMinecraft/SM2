@@ -18,6 +18,8 @@ namespace Base
             LevelType = Base.LevelType.DEFAULT;
         }
 
+        public bool HasSkylight { get; set; }
+
         public ConcurrentBag<IEntity> Entities { get; }
 
         public int Id { get; internal set; }
@@ -51,17 +53,11 @@ namespace Base
             set => this[position.ToChunkPosition(out int sectionY, out BlockPosition relPos)][sectionY][relPos] = value;
         }
 
-        public T CreateEntity<T>(EntityTransform transform)
-                where T : IEntity, new()
+        public void AttachEntity(IEntity entity)
         {
-            var entity = new T
-            {
-                EntityId = _nextEntityId++,
-                Dimension = this,
-                Transform = transform
-            };
+            entity.EntityId = _nextEntityId++;
+            entity.Dimension = this;
             Entities.Add(entity);
-            return entity;
         }
 
         private Chunk GenerateChunk(ChunkPosition position)

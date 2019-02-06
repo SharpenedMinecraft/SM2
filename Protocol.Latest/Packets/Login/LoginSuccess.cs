@@ -42,7 +42,7 @@ namespace Protocol.Latest.Packets
             {
                 var requestResult = await wc.PostAsync(
                     $"https://api.mojang.com/profiles/minecraft",
-                    new StringContent("[ \"" + p.Username + "\"]", Encoding.UTF8, "application/json"));
+                    new StringContent($@"[""{p.Username}""]", Encoding.UTF8, "application/json"));
                 if (!requestResult.IsSuccessStatusCode)
                     throw new Exception(requestResult.ReasonPhrase);
                 var fullResult = await requestResult.Content.ReadAsStringAsync();

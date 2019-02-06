@@ -11,9 +11,9 @@ namespace Protocol.Latest.Packets
     public sealed class ChunkData : IPacket
     {
         public const byte FULL_SIZE_BITS_PER_BLOCK = 14;
-        private const int SECTION_HEIGHT = 16;
-        private const int SECTION_WIDTH = 16;
-        private const int SECTION_DEPTH = 16;
+        private const int SectionHeight = ChunkSection.Height;
+        private const int SectionWidth = ChunkSection.Width;
+        private const int SectionDepth = ChunkSection.Depth;
 
         private readonly Chunk _chunk;
 
@@ -45,7 +45,7 @@ namespace Protocol.Latest.Packets
             using (var data = new MemoryStream())
             {
                 int mask = 0;
-                for (int sectionY = 0; sectionY < SECTION_HEIGHT; sectionY++)
+                for (int sectionY = 0; sectionY < SectionHeight; sectionY++)
                 {
                     var v = _chunk[sectionY];
                     if (!v.IsEmpty())
@@ -61,9 +61,9 @@ namespace Protocol.Latest.Packets
                 }
 
                 int[] biomes = new int[256];
-                for (int z = 0; z < SECTION_WIDTH; z++)
+                for (int z = 0; z < SectionWidth; z++)
                 {
-                    for (int x = 0; x < SECTION_WIDTH; x++)
+                    for (int x = 0; x < SectionWidth; x++)
                     {
                         biomes[z * 16 | x] = 127;
                     }
@@ -91,19 +91,21 @@ namespace Protocol.Latest.Packets
             // A bitmask that contains bitsPerBlock set bits
             ulong individualValueMask = (ulong)((1 << bitsPerBlock) - 1);
 
-            int dataLength = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_DEPTH) * bitsPerBlock / 64;
+            const int ulongBitSize = 64;
+
+            int dataLength = (SectionHeight * SectionWidth * SectionDepth) * bitsPerBlock / ulongBitSize;
             ulong[] dataArray = new ulong[dataLength];
 
-            for (int y = 0; y < SECTION_HEIGHT; y++)
+            for (int y = 0; y < SectionHeight; y++)
             {
-                for (int z = 0; z < SECTION_WIDTH; z++)
+                for (int z = 0; z < SectionWidth; z++)
                 {
-                    for (int x = 0; x < SECTION_WIDTH; x++)
+                    for (int x = 0; x < SectionWidth; x++)
                     {
-                        int blockNumber = (((y * SECTION_HEIGHT) + z) * SECTION_WIDTH) + x;
-                        int startLong = (blockNumber * bitsPerBlock) / 64;
-                        int startOffset = (blockNumber * bitsPerBlock) % 64;
-                        int endLong = (((blockNumber + 1) * bitsPerBlock) - 1) / 64;
+                        int blockNumber = (((y * SectionHeight) + z) * SectionWidth) + x;
+                        int startLong = (blockNumber * bitsPerBlock) / ulongBitSize;
+                        int startOffset = (blockNumber * bitsPerBlock) % ulongBitSize;
+                        int endLong = (((blockNumber + 1) * bitsPerBlock) - 1) / ulongBitSize;
 
                         // C# Still limits the Byte Size to uint if this is a uint,
                         // even after byteshifting into a ulong
@@ -114,7 +116,7 @@ namespace Protocol.Latest.Packets
 
                         if (startLong != endLong)
                         {
-                            dataArray[endLong] = value >> (64 - startOffset);
+                            dataArray[endLong] = value >> (ulongBitSize - startOffset);
                         }
                     }
                 }
@@ -124,11 +126,11 @@ namespace Protocol.Latest.Packets
             NetworkUtils.WriteVarInt(stream, dataLength);
             await NetworkUtils.WriteArray(stream, dataArray, NetworkUtils.WriteULong);
 
-            for (int y = 0; y < SECTION_HEIGHT; y++)
+            for (int y = 0; y < SectionHeight; y++)
             {
-                for (int z = 0; z < SECTION_WIDTH; z++)
+                for (int z = 0; z < SectionWidth; z++)
                 {
-                    for (int x = 0; x < SECTION_WIDTH; x += 2)
+                    for (int x = 0; x < SectionWidth; x += 2)
                     {
                         // Note: x += 2 above; we read 2 values along x each time
                         byte blocklight1 = (byte)section.GetBlockLight(x, y, z);
@@ -140,13 +142,13 @@ namespace Protocol.Latest.Packets
                 }
             }
 
-            if (_chunk.Dimension.Id == 0)
+            if (_chunk.Dimension.HasSkylight)
             {
-                for (int y = 0; y < SECTION_HEIGHT; y++)
+                for (int y = 0; y < SectionHeight; y++)
                 {
-                    for (int z = 0; z < SECTION_WIDTH; z++)
+                    for (int z = 0; z < SectionWidth; z++)
                     {
-                        for (int x = 0; x < SECTION_WIDTH; x += 2)
+                        for (int x = 0; x < SectionWidth; x += 2)
                         {
                             // Note: x += 2 above; we read 2 values along x each time
                             byte blocklight1 = (byte)section.GetSkyLight(x, y, z);

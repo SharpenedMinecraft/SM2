@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.IO;
 using System.Text;
@@ -14,14 +15,14 @@ namespace Server
 
         public static void WriteArray<T>(Stream stream, T[] val, Action<Stream, T> action)
         {
-            for (int i = 0; i < val.Length; i++)
-                action(stream, val[i]);
+            foreach (T v in val)
+                action(stream, v);
         }
 
         public static async ValueTask WriteArray<T>(Stream stream, T[] val, Func<Stream, T, ValueTask> func)
         {
-            for (int i = 0; i < val.Length; i++)
-                await func(stream, val[i]);
+            foreach (T v in val)
+                await func(stream, v);
         }
 
         public static void WriteVarInt(Stream stream, int val)

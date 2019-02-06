@@ -5,7 +5,11 @@ namespace Base
 {
     public sealed class ChunkSection
     {
-        private readonly int[,,] _blocks = new int[16, 16, 16];
+        public const int Height = 16;
+        public const int Width = 16;
+        public const int Depth = 16;
+
+        private readonly int[,,] _blocks = new int[Width, Height, Depth];
 
         public List<DirtyBlockInfo> DirtyBlocks { get; } = new List<DirtyBlockInfo>();
 
@@ -42,6 +46,7 @@ namespace Base
             _blocks[x, y, z] = newState;
         }
 
+        // TODO: Light calculations
         public byte GetBlockLight(int x, int y, int z)
         {
             return 12;
@@ -54,11 +59,11 @@ namespace Base
 
         public bool IsEmpty()
         {
-            for (int x = 0; x < 16; x++)
+            for (int x = 0; x < Width; x++)
             {
-                for (int z = 0; z < 16; z++)
+                for (int z = 0; z < Depth; z++)
                 {
-                    for (int y = 0; y < 16; y++)
+                    for (int y = 0; y < Height; y++)
                     {
                         if (_blocks[x, y, z] != 0)
                             return false;

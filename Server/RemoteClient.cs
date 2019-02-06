@@ -84,14 +84,12 @@ namespace Server
 
         public void Write<T>(T packet)
             where T : IPacket
-        {
-            _writeQueue.Add(packet);
-        }
+            => _writeQueue.Add(packet);
 
         public void Write(IPacket packet)
             => _writeQueue.Add(packet);
 
-        public async Task<T> WaitForPacket<T>(Predicate<T> predicate)
+        public Task<T> WaitForPacket<T>(Predicate<T> predicate)
             where T : IPacket
         {
             var tcs = new TaskCompletionSource<T>();
@@ -104,18 +102,15 @@ namespace Server
                 }
             });
 
-            T result;
             try
             {
                 OnPacketReceived += handler;
-                result = await tcs.Task;
+                return tcs.Task;
             }
             finally
             {
                 OnPacketReceived -= handler;
             }
-
-            return result;
         }
 
         public void Dispose()
@@ -246,10 +241,8 @@ namespace Server
                         using (var stream2 = new MemoryStream())
                         {
                             NetworkUtils.WriteVarInt(stream2, (int)stream.Position);
-                            stream.Position = 0;
-                            await stream.CopyToAsync(stream2);
-                            stream2.Position = 0;
-                            await stream2.CopyToAsync(clientStream);
+                            await CopyEntireMemoryStream(stream, stream2);
+                            await CopyEntireMemoryStream(stream2, clientStream);
                         }
                     }
 #if DEBUG
@@ -269,6 +262,12 @@ namespace Server
 
             _myCts.Cancel();
             Dispose();
+        }
+
+        private async Task CopyEntireMemoryStream(MemoryStream source, Stream target)
+        {
+            source.Position = 0;
+            await source.CopyToAsync(target);
         }
     }
 }

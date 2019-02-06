@@ -30,7 +30,12 @@ namespace Base
 
         public bool Equals(EntityTransform other)
         {
-            return this.X.Equals(other.X) && this.Y.Equals(other.Y) && this.Z.Equals(other.Z) && this.Yaw.Equals(other.Yaw) && this.Pitch.Equals(other.Pitch) && this.OnGround == other.OnGround;
+            return this.X.Equals(other.X)
+                && this.Y.Equals(other.Y)
+                && this.Z.Equals(other.Z)
+                && this.Yaw.Equals(other.Yaw)
+                && this.Pitch.Equals(other.Pitch)
+                && this.OnGround == other.OnGround;
         }
 
         public override bool Equals(object obj)

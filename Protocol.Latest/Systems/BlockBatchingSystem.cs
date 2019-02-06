@@ -23,37 +23,35 @@ namespace Protocol.Latest.Systems
         private void TickSync(Dimension dimension, MainServer server)
         {
             var groups =
-            from client1 in server.Clients.ToArray()
-            where client1.State == ConnectionState.Play
-            from chunk1 in client1.LoadedChunks
-            group client1 by chunk1 into g
-            select g;
+                from client1 in server.Clients.ToArray()
+                where client1.State == ConnectionState.Play
+                from chunk1 in client1.LoadedChunks
+                group client1 by chunk1 into g
+                select g;
 
             foreach (var chunk in dimension.Chunks)
             {
                 if (!chunk.Sections.Any(x => x.DirtyBlocks.Count > 0))
                     continue;
 
-                var dirtyBlocks = chunk.Sections.SelectMany((section, i)
-                    => section.DirtyBlocks.Select((block)
-                        => Tuple.Create(block, i)));
-                foreach (var(dirtyBlock, section) in dirtyBlocks)
+                for (int section = 0; section < chunk.Sections.Length; section++)
                 {
-                    // note, these are relative to the *chunk section*
-                    var pos = new BlockPosition(
-                        (chunk.Position.X * 16) + dirtyBlock.Position.X,
-                        (section * 16) + dirtyBlock.Position.Y,
-                        (chunk.Position.Z * 16) + dirtyBlock.Position.Z);
-                    groups.FirstOrDefault(x => x.Key == chunk)?.Broadcast(new BlockChange()
+                    foreach (var dirtyBlock in chunk.Sections[section].DirtyBlocks)
                     {
-                        GlobalPosition = pos,
-                        NewState = dirtyBlock.NewState
-                    });
-                }
+                        // note, these are relative to the *chunk section*
+                        var pos = new BlockPosition(
+                            (chunk.Position.X * 16) + dirtyBlock.Position.X,
+                            (section * 16) + dirtyBlock.Position.Y,
+                            (chunk.Position.Z * 16) + dirtyBlock.Position.Z);
+                        groups.FirstOrDefault(x => x.Key == chunk)?.Broadcast(new BlockChange()
+                        {
+                            GlobalPosition = pos,
+                            NewState = dirtyBlock.NewState
+                        });
+                    }
 
-                // clear DirtyBlocks
-                foreach (var section in chunk.Sections)
-                    section.DirtyBlocks.Clear();
+                    chunk.Sections[section].DirtyBlocks.Clear();
+                }
             }
         }
     }

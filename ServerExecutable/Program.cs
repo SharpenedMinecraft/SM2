@@ -73,6 +73,7 @@ namespace ServerExecutable
         private static Dimension PrepareOverworld()
         {
             var v = new Dimension(new VoidWorldGenerator());
+            v.HasSkylight = true;
 
             Log.Information("Preparing Chunks in Overworld");
             var stopwatch = Stopwatch.StartNew();

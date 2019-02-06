@@ -17,27 +17,15 @@ namespace Base
                 entity,
                 new List<int>() { v },
                 (oldEntity, oldList) =>
-            {
-                if (oldEntity == entity)
                 {
-                    oldList.Add(v);
+                    if (oldEntity == entity)
+                        oldList.Add(v);
                     return oldList;
-                }
-                else
-                {
-                    return oldList;
-                }
-            });
+                });
             return v;
         }
 
-        public static bool AcceptId(IEntity entity, int id)
-        {
-            if (!_ids.TryGetValue(entity, out List<int> ids))
-                return false;
-            if (!ids.Remove(id))
-                return false;
-            return true;
-        }
+        public static bool AcceptId(IEntity entity, int id) 
+            => _ids.TryGetValue(entity, out var ids) && ids.Remove(id);
     }
 }

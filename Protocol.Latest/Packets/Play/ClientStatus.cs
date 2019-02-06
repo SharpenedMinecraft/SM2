@@ -19,14 +19,12 @@ namespace Protocol.Latest.Packets
 
             if (actionId == 0)
             {
-                // TODO: Respawning
-                return Task.CompletedTask;
+                return Respawn(stream, client);
             }
 
             if (actionId == 1)
             {
-                // TODO: Stats Screen
-                return Task.CompletedTask;
+                return StatsScreen(stream, client);
             }
 
             throw new InvalidDataException("Action ID can only be 0 or 1");
@@ -36,5 +34,17 @@ namespace Protocol.Latest.Packets
         {
             throw new NotImplementedException();
         }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        private async Task Respawn(Stream stream, RemoteClient client)
+        {
+            // TODO: Respawning
+        }
+
+        private async Task StatsScreen(Stream stream, RemoteClient client)
+        {
+            // TODO: Stats Screen
+        }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 }

@@ -25,7 +25,7 @@ namespace Base
             return v;
         }
 
-        public static bool AcceptId(IEntity entity, int id) 
+        public static bool AcceptId(IEntity entity, int id)
             => _ids.TryGetValue(entity, out var ids) && ids.Remove(id);
     }
 }

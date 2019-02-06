@@ -82,15 +82,19 @@ namespace Server
                 try
                 {
                     var client = await _listener.AcceptTcpClientAsync();
-                    var player = World.Overworld.CreateEntity<Player>(new EntityTransform()
+                    var player = new Player()
                     {
-                        OnGround = true,
-                        X = 0,
-                        Y = 10,
-                        Z = 0,
-                        Yaw = 0,
-                        Pitch = 0
-                    });
+                        Transform = new EntityTransform()
+                        {
+                            OnGround = true,
+                            X = 0,
+                            Y = 10,
+                            Z = 0,
+                            Yaw = 0,
+                            Pitch = 0
+                        }
+                    };
+                    World.Overworld.AttachEntity(player);
                     var remote = new RemoteClient(client, _protocol, this)
                     {
                         Player = player

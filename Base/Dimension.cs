@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Base
 {
@@ -17,6 +18,8 @@ namespace Base
             LevelType = Base.LevelType.DEFAULT;
         }
 
+        public bool HasSkylight { get; set; }
+
         public ConcurrentBag<IEntity> Entities { get; }
 
         public int Id { get; internal set; }
@@ -27,17 +30,13 @@ namespace Base
 
         public BlockPosition SpawnPosition { get; set; }
 
+        public ICollection<Chunk> Chunks => _chunks.Values;
+
         public Chunk this[ChunkPosition position]
         {
             get
             {
-                return _chunks.GetOrAdd(position, (pos) =>
-                {
-                    var newChunk = _generator.GenerateChunkAt(pos);
-                    newChunk.Dimension = this;
-                    newChunk.Position = pos;
-                    return newChunk;
-                });
+                return _chunks.GetOrAdd(position, GenerateChunk);
             }
 
             set
@@ -48,17 +47,25 @@ namespace Base
             }
         }
 
-        public T CreateEntity<T>(EntityTransform transform)
-            where T : IEntity, new()
+        public Block this[BlockPosition position]
         {
-            var entity = new T
-            {
-                EntityId = _nextEntityId++,
-                Dimension = this,
-                Transform = transform
-            };
+            get => this[position.ToChunkPosition(out int sectionY, out BlockPosition relPos)][sectionY][relPos];
+            set => this[position.ToChunkPosition(out int sectionY, out BlockPosition relPos)][sectionY][relPos] = value;
+        }
+
+        public void AttachEntity(IEntity entity)
+        {
+            entity.EntityId = _nextEntityId++;
+            entity.Dimension = this;
             Entities.Add(entity);
-            return entity;
+        }
+
+        private Chunk GenerateChunk(ChunkPosition position)
+        {
+            var newChunk = _generator.GenerateChunkAt(position);
+            newChunk.Dimension = this;
+            newChunk.Position = position;
+            return newChunk;
         }
     }
 }

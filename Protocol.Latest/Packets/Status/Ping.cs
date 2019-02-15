@@ -15,14 +15,14 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public async Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
-            var pingID = await NetworkUtils.ReadLong(stream);
+            var pingID = NetworkUtils.ReadLong(stream);
 
             client.Write(new Pong(pingID));
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Base;
 using Protocol.Latest.Packets;
+using Protocol.Latest.Systems;
 using Server;
 
 namespace Protocol.Latest
@@ -19,6 +20,11 @@ namespace Protocol.Latest
             .ToLookup(x => x.Id);
 
         private static readonly Random _random = new Random();
+
+        public ITickSystem[] Systems { get; } = new ITickSystem[]
+            {
+                new BlockBatchingSystem()
+            };
 
         public string GetLabel() => Label;
 
@@ -43,14 +49,22 @@ namespace Protocol.Latest
                 });
                 var start = DateTime.UtcNow;
                 var packetTask = client.WaitForPacket<KeepAliveServerbound>((packet) => packet.KeepAliveID == id);
-                var timeTask = Task.Delay(30 * 1000);
+                var timeTask = Task.Delay(35 * 1000); // 5 seconds extra time
                 var resTask = await Task.WhenAny(packetTask, timeTask);
                 if (resTask == packetTask)
-                    await Task.Delay(start - start.AddSeconds(30));
+                {
+                    // technically 20, but 15 to be safe (also cause debugging and shit)
+                    await Task.Delay(start - start.AddSeconds(15));
+                }
                 else
+                {
                     throw new TimeoutException();
+                }
             }
         }
+
+        public IPacket GetLoadChunkPacket(Chunk c)
+            => new ChunkData(c);
 
         internal static void QueueLoginSequencePart1(RemoteClient client)
         {
@@ -73,7 +87,7 @@ namespace Protocol.Latest
                     var v = playerChunkPos;
                     v.X += x;
                     v.Z += z;
-                    client.Write(new ChunkData(client.Player.Dimension[v]));
+                    client.LoadChunk(v);
                 }
             }
         }

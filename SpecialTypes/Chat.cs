@@ -10,5 +10,6 @@ namespace SpecialTypes
     public struct Chat
     {
         // TODO: Implement Chat
+        // !! override ToString
     }
 }

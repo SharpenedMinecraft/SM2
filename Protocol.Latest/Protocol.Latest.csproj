@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Base\Base.csproj" />
+    <ProjectReference Include="..\MinecraftImplementations\MinecraftImplementations.csproj" />
     <ProjectReference Include="..\Server\Server.csproj" />
   </ItemGroup>
 

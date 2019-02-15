@@ -6,24 +6,30 @@ namespace Base
 {
     public sealed class World
     {
-        private readonly Dictionary<int, Dimension> dimensions = new Dictionary<int, Dimension>();
+        private readonly Dictionary<int, Dimension> _dimensions = new Dictionary<int, Dimension>();
+
+        public event EventHandler<Dimension> OnDimensionCreated;
 
         public static IBlockManager BlockManager { get; set; }
 
-        public Dimension Overworld => dimensions[0];
+        public Dimension Overworld => _dimensions[0];
 
-        public Dimension End => dimensions[-1];
+        public Dimension End => _dimensions[-1];
 
-        public Dimension Nether => dimensions[1];
+        public Dimension Nether => _dimensions[1];
+
+        public ICollection<Dimension> Dimensions => _dimensions.Values;
 
         public Dimension this[int id]
         {
-            get => dimensions[id];
-            set
-            {
-                value.Id = id;
-                dimensions[id] = value;
-            }
+            get => _dimensions[id];
+        }
+
+        public void AttachDimension(Dimension dimension, int id)
+        {
+            dimension.Id = id;
+            _dimensions[id] = dimension;
+            OnDimensionCreated?.Invoke(this, dimension);
         }
     }
 }

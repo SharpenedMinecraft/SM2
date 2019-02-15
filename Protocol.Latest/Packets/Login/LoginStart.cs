@@ -15,14 +15,14 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public async Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             client.IsPerformingLoginSequence = true;
-            client.Player.Username = await NetworkUtils.ReadString(stream);
+            client.Player.Username = NetworkUtils.ReadString(stream);
             client.Write(new LoginSuccess());
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

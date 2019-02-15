@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Base\Base.csproj" />
-    <ProjectReference Include="..\Blocks\Blocks.csproj" />
+    <ProjectReference Include="..\MinecraftImplementations\MinecraftImplementations.csproj" />
   </ItemGroup>
 
 </Project>

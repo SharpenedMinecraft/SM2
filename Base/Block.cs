@@ -8,12 +8,21 @@ namespace Base
 
         public Chunk Chunk { get; set; }
 
-        public abstract ulong MaxStateId { get; }
+        public abstract int MaxStateId { get; }
 
-        public abstract ulong MinStateId { get; }
+        public abstract int MinStateId { get; }
 
-        public abstract ulong GetStateId();
+        public abstract int GetStateId();
 
         public abstract Block Clone();
+
+        public virtual void Digging(BlockFace face, IEntity entity)
+        {
+            Position.ToChunkPosition(out int sectionY, out BlockPosition relPos);
+            Chunk[sectionY].SetStateId(relPos.X, relPos.Y, relPos.Z, 0);
+        }
+
+        public virtual void Action(IEntity entity, byte actionID, byte actionParam)
+        { }
     }
 }

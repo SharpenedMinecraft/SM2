@@ -16,7 +16,7 @@ namespace Server
         public static long NextLong(this Random random, long min, long max)
         {
             if (max <= min)
-                throw new ArgumentOutOfRangeException("max", "max must be > min!");
+                throw new ArgumentOutOfRangeException(nameof(max), $"{nameof(max)} must be > {nameof(min)}!");
 
             // Working with ulong so that modulo works correctly with values > long.MaxValue
             ulong uRange = (ulong)(max - min);

@@ -13,28 +13,38 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             var actionId = NetworkUtils.ReadVarInt(stream);
 
             if (actionId == 0)
             {
-                // TODO: Respawning
-                return Task.CompletedTask;
+                Respawn(stream, client);
+                return;
             }
 
             if (actionId == 1)
             {
-                // TODO: Stats Screen
-                return Task.CompletedTask;
+                StatsScreen(stream, client);
+                return;
             }
 
             throw new InvalidDataException("Action ID can only be 0 or 1");
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
+        }
+
+        private void Respawn(Stream stream, RemoteClient client)
+        {
+            // TODO: Respawning
+        }
+
+        private void StatsScreen(Stream stream, RemoteClient client)
+        {
+            // TODO: Stats Screen
         }
     }
 }

@@ -14,15 +14,15 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public async Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
-            EntityTransform transform = new EntityTransform()
+            var transform = new EntityTransform()
             {
-                X = await NetworkUtils.ReadDouble(stream),
-                Y = await NetworkUtils.ReadDouble(stream),
-                Z = await NetworkUtils.ReadDouble(stream),
-                Pitch = await NetworkUtils.ReadFloat(stream),
-                Yaw = await NetworkUtils.ReadFloat(stream),
+                X = NetworkUtils.ReadDouble(stream),
+                Y = NetworkUtils.ReadDouble(stream),
+                Z = NetworkUtils.ReadDouble(stream),
+                Pitch = NetworkUtils.ReadFloat(stream),
+                Yaw = NetworkUtils.ReadFloat(stream),
                 OnGround = NetworkUtils.ReadBool(stream)
             };
 
@@ -41,7 +41,7 @@ namespace Protocol.Latest.Packets
             client.Player.Transform = transform;
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

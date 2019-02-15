@@ -1,15 +1,27 @@
-﻿namespace Base
+﻿using System;
+
+namespace Base
 {
     public sealed class Chunk
     {
-        private readonly ChunkSection[] _sections;
+        public const int SectionCount = 16;
+        public const int ChunkHeight = ChunkSection.Height * SectionCount;
+        public const int Width = ChunkSection.Width;
+        public const int Depth = ChunkSection.Depth;
 
         public Chunk()
         {
-            _sections = new ChunkSection[16];
-            for (int i = 0; i < 16; i++)
-                _sections[i] = new ChunkSection();
+            Sections = new ChunkSection[SectionCount];
+            for (int i = 0; i < SectionCount; i++)
+            {
+                Sections[i] = new ChunkSection()
+                {
+                    Chunk = this
+                };
+            }
         }
+
+        public ChunkSection[] Sections { get; }
 
         public ChunkPosition Position { get; set; }
 
@@ -17,8 +29,21 @@
 
         public ChunkSection this[int sectionY]
         {
-            get => _sections[sectionY];
-            set => _sections[sectionY] = value;
+            get
+            {
+                if (sectionY > SectionCount || sectionY < 0)
+                    throw new ArgumentOutOfRangeException(nameof(sectionY));
+
+                return Sections[sectionY];
+            }
+
+            set
+            {
+                if (sectionY > SectionCount || sectionY < 0)
+                    throw new ArgumentOutOfRangeException(nameof(sectionY));
+
+                Sections[sectionY] = value;
+            }
         }
     }
 }

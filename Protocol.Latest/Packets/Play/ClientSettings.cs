@@ -14,10 +14,10 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public async Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             client.Player.Settings = new PlayerSettings(
-                await NetworkUtils.ReadString(stream),
+                NetworkUtils.ReadString(stream),
                 NetworkUtils.ReadByte(stream),
                 (ChatMode)NetworkUtils.ReadVarInt(stream),
                 NetworkUtils.ReadBool(stream),
@@ -28,7 +28,7 @@ namespace Protocol.Latest.Packets
                 LatestProtocol.QueueLoginSequencePart2(client);
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

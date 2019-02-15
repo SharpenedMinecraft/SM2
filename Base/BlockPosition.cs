@@ -19,14 +19,14 @@ namespace Base
 
         public ChunkPosition ToChunkPosition(out int sectionY, out BlockPosition relativePosition)
         {
-            sectionY = Y / 16;
+            sectionY = Y / Chunk.SectionCount;
             relativePosition = new BlockPosition(
-                X % 16,
-                Y % 16,
-                Z % 16);
+                X % ChunkSection.Width,
+                Y % ChunkSection.Height,
+                Z % ChunkSection.Depth);
             return new ChunkPosition(
-                X / 16,
-                Z / 16);
+                X / Chunk.Width,
+                Z / Chunk.Depth);
         }
     }
 }

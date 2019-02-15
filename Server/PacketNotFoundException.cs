@@ -14,6 +14,16 @@ namespace Server
             this.PacketID = id;
         }
 
+        public PacketNotFoundException(string message)
+            : base(message)
+        {
+        }
+
+        public PacketNotFoundException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
         public int PacketID { get; }
 
         public override string Message => $"Packet with ID {PacketID} could not be found in Current State!";

@@ -9,8 +9,9 @@ namespace Entities
     public sealed class Player : Living
     {
         [Flags]
-        public enum DisplayedSkinPartsFlags
+        public enum DisplayedSkinPartsFlags : byte
         {
+            None = 0x00,
             Cape = 0x01,
             Jacket = 0x02,
             LeftSleeve = 0x04,
@@ -19,6 +20,22 @@ namespace Entities
             RightPantsLeg = 0x20,
             Hat = 0x40,
         }
+
+        [Flags]
+        public enum Ability : byte
+        {
+            None = 0x00,
+            Invulnerable = 0x01,
+            Flying = 0x02,
+            AllowFlying = 0x04,
+            CreativeMode = 0x08
+        }
+
+        public PlayerInventory Inventory { get; set; } = new PlayerInventory();
+
+        public Ability Abilities { get; set; } = Ability.AllowFlying | Ability.Invulnerable | Ability.Flying | Ability.CreativeMode;
+
+        public bool IsCreativeMode => (Abilities & Ability.CreativeMode) != 0;
 
         public override EntitySpawnMethod SpawnMethod => EntitySpawnMethod.Special;
 
@@ -49,5 +66,11 @@ namespace Entities
         public NBT LeftShoulderData { get; set; }
 
         public NBT RightShoulderData { get; set; }
+
+        public override string ToString()
+        {
+            var finalName = IsCustomNameVisible ? CustomName.Value.ToString() : Username;
+            return $"{finalName} ({UUID}) ({Enum.GetName(typeof(Ability), Abilities)})";
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Base;
 using Entities;
 using Serilog;
 
@@ -16,10 +17,11 @@ namespace Server
         private readonly TcpClient _client;
         private readonly CancellationTokenSource _cts;
         private readonly CancellationTokenSource _myCts;
-        private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>();
-        private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>();
+        private readonly BlockingCollection<IPacket> _writeQueue = new BlockingCollection<IPacket>(new ConcurrentQueue<IPacket>());
+        private readonly BlockingCollection<PacketInfo> _processQueue = new BlockingCollection<PacketInfo>(new ConcurrentQueue<PacketInfo>());
 
         private bool _isPerformingLoginSequence;
+        private ConnectionState state;
 
 #pragma warning disable IDE0052 // Remove unread private members
         private Task _readTask;
@@ -31,6 +33,7 @@ namespace Server
         internal RemoteClient(TcpClient client, IProtocol protocol, MainServer server)
         {
             Server = server;
+            LoadedChunks = new BlockingCollection<Chunk>();
             _protocol = protocol;
             _client = client;
             _myCts = new CancellationTokenSource();
@@ -41,7 +44,19 @@ namespace Server
 
         public MainServer Server { get; }
 
+        public BlockingCollection<Chunk> LoadedChunks { get; set; }
+
         public Player Player { get; internal set; }
+
+        public ConnectionState State
+        {
+            get => state;
+            set
+            {
+                state = value;
+                Log.Debug("Switched to State " + Enum.GetName(typeof(ConnectionState), value));
+            }
+        }
 
         public bool IsPerformingLoginSequence
         {
@@ -50,24 +65,36 @@ namespace Server
             {
                 _isPerformingLoginSequence = value;
                 LoginSequenceSwitch(value);
-                Console.WriteLine("Switched IsPerformingLoginSequence to " + value);
+                Log.Debug("Switched IsPerformingLoginSequence to " + value);
             }
         }
 
-        public ConnectionState State { get; set; }
+        public Chunk LoadChunk(ChunkPosition position)
+        {
+            var chunk = Player.Dimension[position];
+            var packet = _protocol.GetLoadChunkPacket(chunk);
+            Write(packet);
+            LoadedChunks.Add(chunk);
+            return chunk;
+        }
+
+        /*
+            TODO: Unload chunk
+        */
 
         public void Write<T>(T packet)
             where T : IPacket
-        {
-            _writeQueue.Add(packet);
-        }
+            => _writeQueue.Add(packet);
 
-        public async Task<T> WaitForPacket<T>(Predicate<T> predicate)
+        public void Write(IPacket packet)
+            => _writeQueue.Add(packet);
+
+        public Task<T> WaitForPacket<T>(Predicate<T> predicate)
             where T : IPacket
         {
             var tcs = new TaskCompletionSource<T>();
 
-            var handler = new EventHandler<IPacket>((s, e) =>
+            var handler = new EventHandler<IPacket>((_, e) =>
             {
                 if (e is T v && predicate(v))
                 {
@@ -75,23 +102,24 @@ namespace Server
                 }
             });
 
-            T result;
             try
             {
                 OnPacketReceived += handler;
-                result = await tcs.Task;
+                return tcs.Task;
             }
             finally
             {
                 OnPacketReceived -= handler;
             }
-
-            return result;
         }
 
         public void Dispose()
         {
+            Log.Warning($"Disposal of RemoteClient (which owns {Player}) was requested");
             Server.RemoveClient(this);
+            _processQueue?.Dispose();
+            _writeQueue?.Dispose();
+            LoadedChunks?.Dispose();
             _cts.Dispose();
             _client.Dispose();
             _myCts.Dispose();
@@ -106,7 +134,7 @@ namespace Server
 
         private void LoginSequenceSwitch(bool newValue)
         {
-            if (newValue == false)
+            if (!newValue)
             {
                 _keepAliveTask = _protocol.GetKeepAliveTask(this);
             }
@@ -119,9 +147,17 @@ namespace Server
             {
                 while (_client.Available > 0)
                 {
+                    int length = int.MinValue;
+                    int id = int.MinValue;
                     try
                     {
-                        var length = NetworkUtils.ReadVarIntWithLegacyCheck(stream);
+                        length = NetworkUtils.ReadVarInt(stream);
+                        if (length == 0)
+                        {
+                            Log.Warning("Received Packet with Length 0");
+                            break;
+                        }
+
                         using (var buffOwner = MemoryPool<byte>.Shared.Rent(length))
                         {
                             var buffer = buffOwner.Memory;
@@ -129,7 +165,7 @@ namespace Server
 
                             using (var dataStream = new MemoryStream(buffer.ToArray()))
                             {
-                                var id = NetworkUtils.ReadVarInt(dataStream);
+                                id = NetworkUtils.ReadVarInt(dataStream);
                                 var dataSlice = buffer.Slice((int)dataStream.Position);
                                 _processQueue.Add(new PacketInfo()
                                 {
@@ -140,13 +176,25 @@ namespace Server
                             }
                         }
                     }
+                    catch (IOException ex)
+                    {
+                        // EndOfStream etc.
+                        Log.Error(ex, $"Exception while Reading, Length: {length}, Id: {id}");
+                        Dispose();
+                        return;
+                    }
                     catch (Exception ex)
                     {
-                        Log.Error(ex, "Exception while Reading");
+                        Log.Error(ex, $"Exception while Reading, Length: {length}, Id: {id}");
                     }
                 }
 
-                await Task.Delay(1);
+                await Task.Delay(1).ConfigureAwait(false);
+            }
+
+            if (!_cts.IsCancellationRequested)
+            {
+                Dispose();
             }
         }
 
@@ -154,31 +202,41 @@ namespace Server
         {
             while (!_cts.IsCancellationRequested)
             {
-                try
+                foreach (var info in _processQueue.GetConsumingEnumerable(_cts.Token))
                 {
-                    var info = _processQueue.Take();
-                    var packet = _protocol.GetPacket(info.Id, false, this);
-#if DEBUG
-                    Log.Debug($"Processed Packet {packet.GetType().Name} ({packet.Id})");
-#endif
-                    using (var stream = new MemoryStream(info.Data.ToArray()))
-                        await packet.Read(stream, this);
+                    try
+                    {
+                        var packet = _protocol.GetPacket(info.Id, false, this);
+                        using (var stream = new MemoryStream(info.Data.ToArray()))
+                        {
+                            packet.Read(stream, this);
+                            if (stream.Position != stream.Length)
+                            {
+                                int leftOver = (int)(stream.Length - stream.Position);
+                                await stream.ReadAsync(new byte[leftOver], 0, leftOver);
+                            }
+                        }
 
-                    OnPacketReceived?.Invoke(this, packet);
-                }
-                catch (PacketNotFoundException ex)
-                {
-                    Log.Warning(ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception occured while Processing");
+                        OnPacketReceived?.Invoke(this, packet);
+#if DEBUG
+                        Log.Debug($"Processed Packet {packet.GetType().Name} ({packet.Id})");
+#endif
+                    }
+                    catch (PacketNotFoundException ex)
+                    {
+                        Log.Warning(ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Exception occured while Processing");
+                    }
                 }
             }
         }
 
-        private async Task Write()
+        private void Write()
         {
+            var clientStream = _client.GetStream();
             while (!_cts.IsCancellationRequested)
             {
                 var packet = _writeQueue.Take();
@@ -187,14 +245,12 @@ namespace Server
                     using (var stream = new MemoryStream())
                     {
                         NetworkUtils.WriteVarInt(stream, packet.Id);
-                        await packet.Write(stream, this);
+                        packet.Write(stream, this);
                         using (var stream2 = new MemoryStream())
                         {
                             NetworkUtils.WriteVarInt(stream2, (int)stream.Position);
-                            stream.Position = 0;
-                            await stream.CopyToAsync(stream2);
-                            stream2.Position = 0;
-                            await stream2.CopyToAsync(_client.GetStream());
+                            CopyEntireMemoryStream(stream, stream2);
+                            CopyEntireMemoryStream(stream2, clientStream);
                         }
                     }
 #if DEBUG
@@ -203,7 +259,7 @@ namespace Server
                 }
                 catch (IOException)
                 {
-                    Log.Fatal("IOException, disconnecting");
+                    Log.Warning("IOException, disconnecting");
                     break;
                 }
                 catch (Exception ex)
@@ -214,6 +270,12 @@ namespace Server
 
             _myCts.Cancel();
             Dispose();
+        }
+
+        private void CopyEntireMemoryStream(MemoryStream source, Stream target)
+        {
+            source.Position = 0;
+            source.CopyTo(target);
         }
     }
 }

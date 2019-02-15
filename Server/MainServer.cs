@@ -16,7 +16,6 @@ namespace Server
         private readonly TcpListener _listener;
         private readonly CancellationTokenSource _cts;
         private readonly IProtocol _protocol;
-        private readonly List<RemoteClient> _clients = new List<RemoteClient>();
         private Task _listenerTask;
 
         public MainServer(IProtocol protocol, IPAddress filter, int port)
@@ -25,7 +24,12 @@ namespace Server
             _listener = new TcpListener(filter, port);
             _cts = new CancellationTokenSource();
             World = new World();
+            World.OnDimensionCreated += OnDimensionCreated;
+            foreach (var dim in World.Dimensions)
+                OnDimensionCreated(this, dim);
         }
+
+        public List<RemoteClient> Clients { get; } = new List<RemoteClient>();
 
         public World World { get; }
 
@@ -33,7 +37,7 @@ namespace Server
 
         public void Start()
         {
-            _clients.Clear();
+            Clients.Clear();
             _listener.Start();
             _listenerTask = Task.Run(Listen);
         }
@@ -47,7 +51,29 @@ namespace Server
         }
 
         internal void RemoveClient(RemoteClient client)
-            => _clients.Remove(client);
+            => Clients.Remove(client);
+
+        private void OnDimensionCreated(object sender, Dimension e)
+        {
+            foreach (var system in _protocol.Systems)
+            {
+                Task.Run(async () =>
+                {
+                    while (!_cts.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            await system.Tick(e, this);
+                            await Task.Delay((int)((1f / system.TimesPerSecond) * 1000));
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error($"System {system.Name} threw Exception: \n{ex.Message}");
+                        }
+                    }
+                });
+            }
+        }
 
         private async Task Listen()
         {
@@ -56,21 +82,25 @@ namespace Server
                 try
                 {
                     var client = await _listener.AcceptTcpClientAsync();
-                    var player = World.Overworld.CreateEntity<Player>(new EntityTransform()
+                    var player = new Player()
                     {
-                        OnGround = true,
-                        X = 0,
-                        Y = 10,
-                        Z = 0,
-                        Yaw = 0,
-                        Pitch = 0
-                    });
+                        Transform = new EntityTransform()
+                        {
+                            OnGround = true,
+                            X = 0,
+                            Y = 10,
+                            Z = 0,
+                            Yaw = 0,
+                            Pitch = 0
+                        }
+                    };
+                    World.Overworld.AttachEntity(player);
                     var remote = new RemoteClient(client, _protocol, this)
                     {
                         Player = player
                     };
                     remote.StartProcessing();
-                    _clients.Add(remote);
+                    Clients.Add(remote);
                     Log.Information("Accepted new Client");
                 }
                 catch (Exception ex)

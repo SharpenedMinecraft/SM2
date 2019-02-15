@@ -14,12 +14,13 @@
 
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.7.1" />
-    <PackageReference Include="System.Buffers.Primitives" Version="0.1.0-alpha-001" />
+    <PackageReference Include="System.Buffers.Experimental" Version="0.1.1-preview2-190117-1" />
+    <PackageReference Include="System.Buffers.Primitives" Version="0.1.1-preview2-190117-1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Base\Base.csproj" />
-    <ProjectReference Include="..\Entities\Entities.csproj" />
+    <ProjectReference Include="..\MinecraftImplementations\MinecraftImplementations.csproj" />
     <ProjectReference Include="..\SpecialTypes\SpecialTypes.csproj" />
   </ItemGroup>
 

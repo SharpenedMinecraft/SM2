@@ -22,14 +22,14 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => true;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
-            await NetworkUtils.WriteLong(stream, _toWrite);
+            NetworkUtils.WriteLong(stream, _toWrite);
         }
     }
 }

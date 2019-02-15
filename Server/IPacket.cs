@@ -13,8 +13,8 @@ namespace Server
 
         bool Clientbound { get; }
 
-        Task Read(Stream stream, RemoteClient client);
+        void Read(Stream stream, RemoteClient client);
 
-        Task Write(Stream stream, RemoteClient client);
+        void Write(Stream stream, RemoteClient client);
     }
 }

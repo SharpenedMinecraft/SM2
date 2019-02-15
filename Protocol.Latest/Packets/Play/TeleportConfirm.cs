@@ -14,14 +14,13 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             var id = NetworkUtils.ReadVarInt(stream);
             TeleportManager.AcceptId(client.Player, id);
-            return Task.CompletedTask;
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

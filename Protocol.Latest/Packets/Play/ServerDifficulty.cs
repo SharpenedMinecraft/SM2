@@ -13,15 +13,14 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => true;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             NetworkUtils.WriteByte(stream, (byte)client.Player.Dimension.Difficulty);
-            return Task.CompletedTask;
         }
     }
 }

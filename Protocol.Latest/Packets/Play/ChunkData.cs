@@ -30,16 +30,16 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => true;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             // Log.Debug($"Writing ChunkData {_chunk.Position.X}, {_chunk.Position.Z}");
-            await NetworkUtils.WriteInt(stream, _chunk.Position.X);
-            await NetworkUtils.WriteInt(stream, _chunk.Position.Z);
+            NetworkUtils.WriteInt(stream, _chunk.Position.X);
+            NetworkUtils.WriteInt(stream, _chunk.Position.Z);
             NetworkUtils.WriteBool(stream, true);
 
             using (var data = new MemoryStream())
@@ -56,7 +56,7 @@ namespace Protocol.Latest.Packets
                         mask |= 1 << sectionY;
 
                         // Actual Chunk Section Writing
-                        await WriteChunkSection(v, data);
+                        WriteChunkSection(v, data);
                     }
                 }
 
@@ -69,31 +69,29 @@ namespace Protocol.Latest.Packets
                     }
                 }
 
-                await NetworkUtils.WriteArray(data, biomes, NetworkUtils.WriteInt);
+                NetworkUtils.WriteArray(data, biomes, NetworkUtils.WriteInt);
 
                 NetworkUtils.WriteVarInt(stream, mask);
 
                 NetworkUtils.WriteVarInt(stream, (int)data.Position);
                 data.Position = 0;
-                await data.CopyToAsync(stream);
+                data.CopyTo(stream);
             }
 
             // Block Entities
             NetworkUtils.WriteVarInt(stream, 0);
         }
 
-        private async Task WriteChunkSection(ChunkSection section, MemoryStream stream)
+        private void WriteChunkSection(ChunkSection section, MemoryStream stream)
         {
-            byte bitsPerBlock = FULL_SIZE_BITS_PER_BLOCK;
-
-            NetworkUtils.WriteByte(stream, bitsPerBlock);
+            NetworkUtils.WriteByte(stream, FULL_SIZE_BITS_PER_BLOCK);
 
             // A bitmask that contains bitsPerBlock set bits
-            ulong individualValueMask = (ulong)((1 << bitsPerBlock) - 1);
+            const ulong individualValueMask = (1 << FULL_SIZE_BITS_PER_BLOCK) - 1;
 
             const int ulongBitSize = 64;
 
-            int dataLength = (SectionHeight * SectionWidth * SectionDepth) * bitsPerBlock / ulongBitSize;
+            int dataLength = (SectionHeight * SectionWidth * SectionDepth) * FULL_SIZE_BITS_PER_BLOCK / ulongBitSize;
             ulong[] dataArray = new ulong[dataLength];
 
             for (int y = 0; y < SectionHeight; y++)
@@ -103,9 +101,9 @@ namespace Protocol.Latest.Packets
                     for (int x = 0; x < SectionWidth; x++)
                     {
                         int blockNumber = (((y * SectionHeight) + z) * SectionWidth) + x;
-                        int startLong = (blockNumber * bitsPerBlock) / ulongBitSize;
-                        int startOffset = (blockNumber * bitsPerBlock) % ulongBitSize;
-                        int endLong = (((blockNumber + 1) * bitsPerBlock) - 1) / ulongBitSize;
+                        int startLong = (blockNumber * FULL_SIZE_BITS_PER_BLOCK) / ulongBitSize;
+                        int startOffset = (blockNumber * FULL_SIZE_BITS_PER_BLOCK) % ulongBitSize;
+                        int endLong = (((blockNumber + 1) * FULL_SIZE_BITS_PER_BLOCK) - 1) / ulongBitSize;
 
                         // C# Still limits the Byte Size to uint if this is a uint,
                         // even after byteshifting into a ulong
@@ -124,7 +122,7 @@ namespace Protocol.Latest.Packets
 
             // Log.Debug($"Data Array was {dataArray.Length}/{dataLength} long");
             NetworkUtils.WriteVarInt(stream, dataLength);
-            await NetworkUtils.WriteArray(stream, dataArray, NetworkUtils.WriteULong);
+            NetworkUtils.WriteArray(stream, dataArray, NetworkUtils.WriteULong);
 
             for (int y = 0; y < SectionHeight; y++)
             {

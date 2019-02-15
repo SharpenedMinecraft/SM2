@@ -17,17 +17,17 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => true;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
-            client.Player.UUID = await GetUUID(client.Player);
+            client.Player.UUID = GetUUID(client.Player).Result;
 
-            await NetworkUtils.WriteString(stream, client.Player.UUID.ToString());
-            await NetworkUtils.WriteString(stream, client.Player.Username);
+            NetworkUtils.WriteString(stream, client.Player.UUID.ToString());
+            NetworkUtils.WriteString(stream, client.Player.Username);
 
             client.State = ConnectionState.Play;
 

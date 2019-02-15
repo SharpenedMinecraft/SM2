@@ -18,10 +18,10 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public async Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             var status = NetworkUtils.ReadVarInt(stream);
-            var position = await NetworkUtils.ReadBlockPosition(stream);
+            var position = NetworkUtils.ReadBlockPosition(stream);
             var face = (BlockFace)NetworkUtils.ReadByte(stream);
 
             switch (status)
@@ -59,7 +59,7 @@ namespace Protocol.Latest.Packets
             }
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

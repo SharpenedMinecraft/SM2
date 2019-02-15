@@ -147,9 +147,17 @@ namespace Server
             {
                 while (_client.Available > 0)
                 {
+                    int length = int.MinValue;
+                    int id = int.MinValue;
                     try
                     {
-                        var length = NetworkUtils.ReadVarIntWithLegacyCheck(stream);
+                        length = NetworkUtils.ReadVarInt(stream);
+                        if (length == 0)
+                        {
+                            Log.Error("Received Packet with Length 0");
+                            break;
+                        }
+
                         using (var buffOwner = MemoryPool<byte>.Shared.Rent(length))
                         {
                             var buffer = buffOwner.Memory;
@@ -157,7 +165,7 @@ namespace Server
 
                             using (var dataStream = new MemoryStream(buffer.ToArray()))
                             {
-                                var id = NetworkUtils.ReadVarInt(dataStream);
+                                id = NetworkUtils.ReadVarInt(dataStream);
                                 var dataSlice = buffer.Slice((int)dataStream.Position);
                                 _processQueue.Add(new PacketInfo()
                                 {
@@ -171,13 +179,13 @@ namespace Server
                     catch (IOException ex)
                     {
                         // EndOfStream etc.
-                        Log.Error(ex, "Exception while Reading");
+                        Log.Error(ex, $"Exception while Reading, Length: {length}, Id: {id}");
                         Dispose();
                         return;
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex, "Exception while Reading");
+                        Log.Error(ex, $"Exception while Reading, Length: {length}, Id: {id}");
                     }
                 }
 
@@ -201,7 +209,7 @@ namespace Server
                         var packet = _protocol.GetPacket(info.Id, false, this);
                         using (var stream = new MemoryStream(info.Data.ToArray()))
                         {
-                            await packet.Read(stream, this);
+                            packet.Read(stream, this);
                             if (stream.Position != stream.Length)
                             {
                                 int leftOver = (int)(stream.Length - stream.Position);
@@ -226,7 +234,7 @@ namespace Server
             }
         }
 
-        private async Task Write()
+        private void Write()
         {
             var clientStream = _client.GetStream();
             while (!_cts.IsCancellationRequested)
@@ -237,12 +245,12 @@ namespace Server
                     using (var stream = new MemoryStream())
                     {
                         NetworkUtils.WriteVarInt(stream, packet.Id);
-                        await packet.Write(stream, this);
+                        packet.Write(stream, this);
                         using (var stream2 = new MemoryStream())
                         {
                             NetworkUtils.WriteVarInt(stream2, (int)stream.Position);
-                            await CopyEntireMemoryStream(stream, stream2);
-                            await CopyEntireMemoryStream(stream2, clientStream);
+                            CopyEntireMemoryStream(stream, stream2);
+                            CopyEntireMemoryStream(stream2, clientStream);
                         }
                     }
 #if DEBUG
@@ -264,10 +272,10 @@ namespace Server
             Dispose();
         }
 
-        private async Task CopyEntireMemoryStream(MemoryStream source, Stream target)
+        private void CopyEntireMemoryStream(MemoryStream source, Stream target)
         {
             source.Position = 0;
-            await source.CopyToAsync(target);
+            source.CopyTo(target);
         }
     }
 }

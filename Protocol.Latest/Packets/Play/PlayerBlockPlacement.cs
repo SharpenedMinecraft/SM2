@@ -14,20 +14,20 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public async Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
-            var location = await NetworkUtils.ReadBlockPosition(stream);
+            var location = NetworkUtils.ReadBlockPosition(stream);
             var face = (BlockFace)NetworkUtils.ReadVarInt(stream);
             var hand = (HandEnum)NetworkUtils.ReadVarInt(stream);
 
             // from 0 to 1 increasing from west to east
-            var cursorX = await NetworkUtils.ReadFloat(stream);
+            var cursorX = NetworkUtils.ReadFloat(stream);
 
             // from 0 to 1 increasing from bottom to top
-            var cursorY = await NetworkUtils.ReadFloat(stream);
+            var cursorY = NetworkUtils.ReadFloat(stream);
 
             // from 0 to 1 increasing from north to south
-            var cursorZ = await NetworkUtils.ReadFloat(stream);
+            var cursorZ = NetworkUtils.ReadFloat(stream);
 
             Item usedItem;
 
@@ -46,7 +46,7 @@ namespace Protocol.Latest.Packets
             usedItem.Place(location, client.Player);
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

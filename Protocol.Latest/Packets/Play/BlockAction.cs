@@ -13,9 +13,9 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public async Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
-            var location = await NetworkUtils.ReadBlockPosition(stream);
+            var location = NetworkUtils.ReadBlockPosition(stream);
             var actionID = NetworkUtils.ReadByte(stream);
             var actionParam = NetworkUtils.ReadByte(stream);
             var blockType = NetworkUtils.ReadVarInt(stream);
@@ -29,7 +29,7 @@ namespace Protocol.Latest.Packets
             client.Player.Dimension[location].Action(client.Player, actionID, actionParam);
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

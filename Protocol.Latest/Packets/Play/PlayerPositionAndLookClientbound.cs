@@ -14,18 +14,18 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => true;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
-            await NetworkUtils.WriteDouble(stream, client.Player.Transform.X);
-            await NetworkUtils.WriteDouble(stream, client.Player.Transform.Y);
-            await NetworkUtils.WriteDouble(stream, client.Player.Transform.Z);
-            await NetworkUtils.WriteFloat(stream, client.Player.Transform.Yaw);
-            await NetworkUtils.WriteFloat(stream, client.Player.Transform.Pitch);
+            NetworkUtils.WriteDouble(stream, client.Player.Transform.X);
+            NetworkUtils.WriteDouble(stream, client.Player.Transform.Y);
+            NetworkUtils.WriteDouble(stream, client.Player.Transform.Z);
+            NetworkUtils.WriteFloat(stream, client.Player.Transform.Yaw);
+            NetworkUtils.WriteFloat(stream, client.Player.Transform.Pitch);
             NetworkUtils.WriteByte(stream, 0); // Flags
             NetworkUtils.WriteVarInt(stream, TeleportManager.GenerateId(client.Player));
 

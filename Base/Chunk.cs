@@ -1,4 +1,6 @@
-﻿namespace Base
+﻿using System;
+
+namespace Base
 {
     public sealed class Chunk
     {
@@ -11,7 +13,12 @@
         {
             Sections = new ChunkSection[SectionCount];
             for (int i = 0; i < SectionCount; i++)
-                Sections[i] = new ChunkSection();
+            {
+                Sections[i] = new ChunkSection()
+                {
+                    Chunk = this
+                };
+            }
         }
 
         public ChunkSection[] Sections { get; }
@@ -22,8 +29,21 @@
 
         public ChunkSection this[int sectionY]
         {
-            get => Sections[sectionY];
-            set => Sections[sectionY] = value;
+            get
+            {
+                if (sectionY > SectionCount || sectionY < 0)
+                    throw new ArgumentOutOfRangeException(nameof(sectionY));
+
+                return Sections[sectionY];
+            }
+
+            set
+            {
+                if (sectionY > SectionCount || sectionY < 0)
+                    throw new ArgumentOutOfRangeException(nameof(sectionY));
+
+                Sections[sectionY] = value;
+            }
         }
     }
 }

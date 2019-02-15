@@ -17,7 +17,7 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             var protocolID = NetworkUtils.ReadVarInt(stream);
             if (protocolID != LatestProtocol.ProtocolID)
@@ -28,11 +28,9 @@ namespace Protocol.Latest.Packets
             var usedServerAddress = NetworkUtils.ReadString(stream);
             var usedPort = NetworkUtils.ReadUShort(stream);
             client.State = (ConnectionState)NetworkUtils.ReadVarInt(stream);
-
-            return Task.CompletedTask;
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }

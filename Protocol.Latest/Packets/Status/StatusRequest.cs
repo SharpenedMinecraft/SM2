@@ -15,17 +15,15 @@ namespace Protocol.Latest.Packets
 
         public bool Clientbound => false;
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             // no fields
             client.Write(new StatusResponse());
-            return Task.CompletedTask;
         }
 
-        public Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
-            // nothing
-            return Task.CompletedTask;
+            throw new NotImplementedException();
         }
     }
 }

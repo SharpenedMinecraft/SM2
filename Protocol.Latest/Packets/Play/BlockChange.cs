@@ -18,14 +18,14 @@ namespace Protocol.Latest.Packets
 
         public int NewState { get; set; }
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
-            await NetworkUtils.WriteBlockPosition(stream, GlobalPosition);
+            NetworkUtils.WriteBlockPosition(stream, GlobalPosition);
             NetworkUtils.WriteVarInt(stream, NewState);
         }
     }

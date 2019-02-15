@@ -15,14 +15,14 @@ namespace Protocol.Latest.Packets
 
         public long KeepAliveID { get; set; }
 
-        public Task Read(Stream stream, RemoteClient client)
+        public void Read(Stream stream, RemoteClient client)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Write(Stream stream, RemoteClient client)
+        public void Write(Stream stream, RemoteClient client)
         {
-            await NetworkUtils.WriteLong(stream, KeepAliveID);
+            NetworkUtils.WriteLong(stream, KeepAliveID);
         }
     }
 }

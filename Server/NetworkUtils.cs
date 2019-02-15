@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Buffers.Native;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,12 +20,6 @@ namespace Server
                 action(stream, v);
         }
 
-        public static async ValueTask WriteArray<T>(Stream stream, T[] val, Func<Stream, T, ValueTask> func)
-        {
-            foreach (T v in val)
-                await func(stream, v);
-        }
-
         public static void WriteVarInt(Stream stream, int val)
         {
             var size = 0;
@@ -34,7 +29,7 @@ namespace Server
                 if (size > 5)
                     throw new IOException("VarInt too long, its just, i can't handle that");
 
-                WriteByte(stream, (byte)(v & 0x7F | 0x80));
+                WriteByte(stream, (byte)((v & 0x7F) | 0x80));
                 v = (int)(((uint)v) >> 7);
                 size++;
             }
@@ -42,12 +37,12 @@ namespace Server
             WriteByte(stream, (byte)v);
         }
 
-        public static async ValueTask WriteString(Stream stream, string val)
+        public static void WriteString(Stream stream, string val)
         {
             var bytes = Encoding.UTF8.GetBytes(val);
             WriteVarInt(stream, bytes.Length);
             if (bytes.Length > 0)
-                await stream.WriteAsync(bytes, 0, bytes.Length);
+                stream.Write(bytes, 0, bytes.Length);
         }
 
         public static void WriteBool(Stream stream, bool val)
@@ -58,75 +53,76 @@ namespace Server
             stream.WriteByte(val);
         }
 
-        public static async ValueTask WriteUShort(Stream stream, ushort val)
+        public static void WriteUShort(Stream stream, ushort val)
         {
-            Memory<byte> buff = new byte[2];
-            BinaryPrimitives.WriteUInt16BigEndian(buff.Span, val);
-            await stream.WriteAsync(buff);
+            const int size = sizeof(ushort);
+            Span<byte> buff = stackalloc byte[size];
+            BinaryPrimitives.WriteUInt16BigEndian(buff, val);
+            stream.Write(buff);
         }
 
-        public static async ValueTask WriteInt(Stream stream, int val)
+        public static void WriteInt(Stream stream, int val)
         {
-            Memory<byte> buff = new byte[4];
-            BinaryPrimitives.WriteInt32BigEndian(buff.Span, val);
-            await stream.WriteAsync(buff);
+            const int size = sizeof(int);
+            Span<byte> buff = stackalloc byte[size];
+            BinaryPrimitives.WriteInt32BigEndian(buff, val);
+            stream.Write(buff);
         }
 
-        public static async ValueTask WriteULong(Stream stream, ulong val)
+        public static void WriteULong(Stream stream, ulong val)
         {
-            Memory<byte> buff = new byte[8];
-            BinaryPrimitives.WriteUInt64BigEndian(buff.Span, val);
-            await stream.WriteAsync(buff);
+            const int size = sizeof(ulong);
+            Span<byte> buff = stackalloc byte[size];
+            BinaryPrimitives.WriteUInt64BigEndian(buff, val);
+            stream.Write(buff);
         }
 
-        public static async ValueTask WriteLong(Stream stream, long val)
+        public static void WriteLong(Stream stream, long val)
         {
-            Memory<byte> buff = new byte[8];
-            BinaryPrimitives.WriteInt64BigEndian(buff.Span, val);
-            await stream.WriteAsync(buff);
+            const int size = sizeof(long);
+            Span<byte> buff = stackalloc byte[size];
+            BinaryPrimitives.WriteInt64BigEndian(buff, val);
+            stream.Write(buff);
         }
 
-        public static ValueTask WriteBlockPosition(Stream stream, BlockPosition pos)
-            => WriteLong(stream, ((((long)pos.X) & 0x3FFFFFF) << 38) | ((((long)pos.Y) & 0xFFF) << 26) | (((long)pos.Z) & 0x3FFFFFF));
+        public static void WriteBlockPosition(Stream stream, BlockPosition pos)
+            => WriteLong(
+                stream,
+                ((((long)pos.X) & 0x3FFFFFF) << 38) | ((((long)pos.Y) & 0xFFF) << 26) | (((long)pos.Z) & 0x3FFFFFF));
 
-        public static ValueTask WriteFloat(Stream stream, float val)
+        public static void WriteFloat(Stream stream, float val)
         {
             var v = BitConverter.SingleToInt32Bits(val);
-            return WriteInt(stream, v);
+            WriteInt(stream, v);
         }
 
-        public static ValueTask WriteDouble(Stream stream, double val)
+        public static void WriteDouble(Stream stream, double val)
         {
             var v = BitConverter.DoubleToInt64Bits(val);
-            return WriteLong(stream, v);
+            WriteLong(stream, v);
         }
 
         public static int ReadVarInt(Stream stream)
         {
             var val = 0;
-            var size = 0;
+            int size = 0;
             int readData;
             while (((readData = ReadByte(stream)) & 0x80) == 0x80)
             {
-                if (readData == -1)
-                    throw new EndOfStreamException();
-
                 val |= (readData & 0x7F) << (size++ * 7);
                 if (size > 5)
-                {
                     throw new IOException("VarInt too long. Hehe that's punny.");
-                }
             }
 
             return val | ((readData & 0x7F) << (size * 0x7));
         }
 
-        public static async ValueTask<string> ReadString(Stream stream)
+        public static string ReadString(Stream stream)
         {
             var length = ReadVarInt(stream);
-            Memory<byte> buff = new byte[length];
-            await stream.ReadAsync(buff);
-            return Encoding.UTF8.GetString(buff.Span);
+            Span<byte> buff = stackalloc byte[length];
+            stream.Read(buff);
+            return Encoding.UTF8.GetString(buff);
         }
 
         public static bool ReadBool(Stream stream)
@@ -142,44 +138,56 @@ namespace Server
         public static byte ReadByte(Stream stream)
         {
             if (_oneByteArray is null)
-                _oneByteArray = new byte[1];
+                _oneByteArray = new byte[sizeof(byte)];
 
-            if (stream.Read(_oneByteArray, 0, 1) != 1)
+            if (stream.Read(_oneByteArray, 0, sizeof(byte)) != 1)
                 throw new EndOfStreamException();
             return _oneByteArray[0];
         }
 
-        public static async ValueTask<ushort> ReadUShort(Stream stream)
+        public static ushort ReadUShort(Stream stream)
         {
-            Memory<byte> buff = new byte[2];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadUInt16BigEndian(buff.Span);
+            const int size = sizeof(ushort);
+            Span<byte> buff = stackalloc byte[size];
+            if (stream.Read(buff) != size)
+                throw new EndOfStreamException();
+
+            return BinaryPrimitives.ReadUInt16BigEndian(buff);
         }
 
-        public static async ValueTask<int> ReadInt(Stream stream)
+        public static int ReadInt(Stream stream)
         {
-            Memory<byte> buff = new byte[4];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadInt32BigEndian(buff.Span);
+            const int size = sizeof(int);
+            Span<byte> buff = stackalloc byte[size];
+            if (stream.Read(buff) != size)
+                throw new EndOfStreamException();
+
+            return BinaryPrimitives.ReadInt32BigEndian(buff);
         }
 
-        public static async ValueTask<ulong> ReadULong(Stream stream)
+        public static ulong ReadULong(Stream stream)
         {
-            Memory<byte> buff = new byte[8];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadUInt64BigEndian(buff.Span);
+            const int size = sizeof(ulong);
+            Span<byte> buff = stackalloc byte[size];
+            if (stream.Read(buff) != size)
+                throw new EndOfStreamException();
+
+            return BinaryPrimitives.ReadUInt64BigEndian(buff);
         }
 
-        public static async ValueTask<long> ReadLong(Stream stream)
+        public static long ReadLong(Stream stream)
         {
-            Memory<byte> buff = new byte[8];
-            await stream.ReadAsync(buff);
-            return BinaryPrimitives.ReadInt64BigEndian(buff.Span);
+            const int size = sizeof(long);
+            Span<byte> buff = stackalloc byte[size];
+            if (stream.Read(buff) != size)
+                throw new EndOfStreamException();
+
+            return BinaryPrimitives.ReadInt64BigEndian(buff);
         }
 
-        public static async ValueTask<BlockPosition> ReadBlockPosition(Stream stream)
+        public static BlockPosition ReadBlockPosition(Stream stream)
         {
-            var val = await ReadLong(stream);
+            var val = ReadLong(stream);
 
             var x = val >> 38;
             var y = (val >> 26) & 0xFFF;
@@ -192,39 +200,16 @@ namespace Server
             };
         }
 
-        public static async ValueTask<float> ReadFloat(Stream stream)
+        public static float ReadFloat(Stream stream)
         {
-            var v = await ReadInt(stream);
+            var v = ReadInt(stream);
             return BitConverter.Int32BitsToSingle(v);
         }
 
-        public static async ValueTask<double> ReadDouble(Stream stream)
+        public static double ReadDouble(Stream stream)
         {
-            var v = await ReadLong(stream);
+            var v = ReadLong(stream);
             return BitConverter.Int64BitsToDouble(v);
-        }
-
-        internal static int ReadVarIntWithLegacyCheck(Stream stream)
-        {
-            var val = 0;
-            var size = 0;
-            int readData;
-            while (((readData = ReadByte(stream)) & 0x80) == 0x80)
-            {
-                if (readData == -1)
-                    throw new EndOfStreamException();
-
-                if (size == 0 && readData == 0xFE)
-                    throw new LegacyServerListPingException();
-
-                val |= (readData & 0x7F) << (size++ * 7);
-                if (size > 5)
-                {
-                    throw new IOException("VarInt too long. Hehe that's punny.");
-                }
-            }
-
-            return val | ((readData & 0x7F) << (size * 0x7));
         }
     }
 }

@@ -1,16 +1,25 @@
 <Project>
   <PropertyGroup>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+	<Deterministic>false</Deterministic>
   </PropertyGroup>
+  
   <ItemGroup>
     <AdditionalFiles Include="..\stylecop.json" />
-	<!--<AdditionalFiles Include="..\stylecop.ruleset" />-->
   </ItemGroup>
+  
   <ItemGroup>
+    <Compile Include="..\GeneratedSolutionVersion.cs" Link="GeneratedSolutionVersion.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
+	<PackageReference Include="Sentry" Version="1.1.2" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
 	<PackageReference Include="Roslynator.Analyzers" Version="2.0.0" />
 	<PackageReference Include="Roslynator.CodeFixes" Version="2.0.0" />
   </ItemGroup>
+  
   <PropertyGroup>
     <CodeAnalysisRuleSet>..\stylecop.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

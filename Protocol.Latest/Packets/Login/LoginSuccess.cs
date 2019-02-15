@@ -54,7 +54,7 @@ namespace Protocol.Latest.Packets
                 }
                 else
                 {
-                    Log.Error($"Coudnt get UUID for {p.Username}");
+                    Log.Warning($"Coudnt get UUID for {p.Username}");
                     u = Guid.NewGuid();
                 }
             }

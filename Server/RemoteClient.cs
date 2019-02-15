@@ -115,7 +115,7 @@ namespace Server
 
         public void Dispose()
         {
-            Log.Fatal($"Disposal of RemoteClient (which owns {Player}) was requested");
+            Log.Warning($"Disposal of RemoteClient (which owns {Player}) was requested");
             Server.RemoveClient(this);
             _processQueue?.Dispose();
             _writeQueue?.Dispose();
@@ -154,7 +154,7 @@ namespace Server
                         length = NetworkUtils.ReadVarInt(stream);
                         if (length == 0)
                         {
-                            Log.Error("Received Packet with Length 0");
+                            Log.Warning("Received Packet with Length 0");
                             break;
                         }
 
@@ -259,7 +259,7 @@ namespace Server
                 }
                 catch (IOException)
                 {
-                    Log.Fatal("IOException, disconnecting");
+                    Log.Warning("IOException, disconnecting");
                     break;
                 }
                 catch (Exception ex)

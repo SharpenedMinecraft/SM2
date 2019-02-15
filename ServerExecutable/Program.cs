@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Base;
 using Blocks;
 using Protocol.Latest;
+using Sentry;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 using Server;
@@ -14,9 +15,21 @@ namespace ServerExecutable
 {
     public static class Program
     {
+        private const string SentryDSN = "https://e2754ce1ba044947a061151d8c06001b@sentry.io/1394952";
+
 #pragma warning disable RCS1163 // Unused parameter.
         public static async Task Main(string[] args)
 #pragma warning restore RCS1163 // Unused parameter.
+        {
+            using (SentrySdk.Init(SentryDSN))
+            {
+                await RunServer();
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+            }
+        }
+
+        private static Task RunServer()
         {
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
@@ -25,6 +38,11 @@ namespace ServerExecutable
                 .MinimumLevel.Information()
 #endif
                 .Enrich.FromLogContext()
+                .WriteTo.Sentry(
+                    SentryDSN,
+                    $"{SM2.BuildInfo.CompileSHA}@{SM2.BuildInfo.CompileBranch}|{SM2.BuildInfo.CompileMode}",
+                    System.Runtime.InteropServices.RuntimeInformation.OSDescription,
+                    Serilog.Events.LogEventLevel.Error)
                 .WriteTo.Console()
                 .WriteTo.RollingFile("./logs/{Date}.log")
                 .CreateLogger();
@@ -32,15 +50,24 @@ namespace ServerExecutable
             using (var server = new MainServer(new LatestProtocol(), IPAddress.Any, 25565))
             {
                 Log.Information("Loading World...");
-                server.World.AttachDimension(PrepareNether(), -1);
-                server.World.AttachDimension(PrepareOverworld(), 0);
-                server.World.AttachDimension(PrepareEnd(), 1);
+                try
+                {
+                    server.World.AttachDimension(PrepareNether(), -1);
+                    server.World.AttachDimension(PrepareOverworld(), 0);
+                    server.World.AttachDimension(PrepareEnd(), 1);
+                }
+                catch (Exception ex)
+                {
+                    Log.Fatal(ex, "Error while Loading World");
+                    return Task.CompletedTask;
+                }
+
                 Log.Information("Loaded World!");
 
                 Log.Information("Welcome! Starting Server!");
 
                 server.Start();
-                await Task.Delay(-1).ConfigureAwait(false);
+                return Task.Delay(-1);
             }
         }
 
